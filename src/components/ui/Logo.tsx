@@ -1,119 +1,97 @@
 interface LogoProps {
   size?: number;
   className?: string;
-  showText?: boolean;
 }
 
-export const Logo = ({ size = 48, className = "", showText = false }: LogoProps) => {
-  const scale = size / 48;
+export const Logo = ({ size = 48, className = "" }: LogoProps) => {
+  const width = size * 2.8;
+  const height = size;
   
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
-      <svg 
-        width={size * 2.5} 
-        height={size} 
-        viewBox="0 0 120 48" 
-        fill="none" 
-        xmlns="http://www.w3.org/2000/svg"
+    <svg 
+      width={width} 
+      height={height} 
+      viewBox="0 0 140 50" 
+      fill="none" 
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      {/* Border */}
+      <rect 
+        x="2" 
+        y="2" 
+        width="136" 
+        height="46" 
+        rx="3" 
+        stroke="currentColor" 
+        strokeWidth="3" 
+        className="text-primary"
+        fill="none"
+      />
+      
+      {/* EITHER text */}
+      <text 
+        x="70" 
+        y="20" 
+        textAnchor="middle" 
+        fill="white"
+        style={{ 
+          fontSize: '14px', 
+          fontWeight: 900, 
+          fontFamily: 'system-ui, -apple-system, sans-serif',
+          letterSpacing: '3px'
+        }}
       >
-        {/* Border */}
-        <rect 
-          x="1" 
-          y="1" 
-          width="118" 
-          height="46" 
-          rx="4" 
-          stroke="currentColor" 
-          strokeWidth="2" 
-          className="text-primary"
-          fill="none"
-        />
-        
-        {/* EITHER text */}
+        EITHER
+      </text>
+      
+      {/* BOX text with square replacing O */}
+      <g transform="translate(70, 36)">
+        {/* B */}
         <text 
-          x="60" 
-          y="20" 
+          x="-28" 
+          y="0" 
           textAnchor="middle" 
-          className="fill-current text-foreground"
+          fill="white"
           style={{ 
-            fontSize: '12px', 
-            fontWeight: 800, 
-            fontFamily: 'system-ui, sans-serif',
+            fontSize: '16px', 
+            fontWeight: 900, 
+            fontFamily: 'system-ui, -apple-system, sans-serif',
             letterSpacing: '2px'
-          }}
-        >
-          EITHER
-        </text>
-        
-        {/* B text */}
-        <text 
-          x="24" 
-          y="38" 
-          textAnchor="middle" 
-          className="fill-current text-foreground"
-          style={{ 
-            fontSize: '14px', 
-            fontWeight: 800, 
-            fontFamily: 'system-ui, sans-serif'
           }}
         >
           B
         </text>
         
-        {/* Box icon (replacing O) */}
-        <g transform="translate(38, 26)">
-          {/* Box body */}
-          <rect 
-            x="0" 
-            y="4" 
-            width="16" 
-            height="12" 
-            rx="2" 
-            stroke="currentColor" 
-            strokeWidth="1.5" 
-            className="text-foreground"
-            fill="none"
-          />
-          {/* Box lid */}
-          <path 
-            d="M-1 4 L8 0 L17 4" 
-            stroke="currentColor" 
-            strokeWidth="1.5" 
-            className="text-foreground"
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          {/* Box handle */}
-          <rect 
-            x="5" 
-            y="8" 
-            width="6" 
-            height="4" 
-            rx="1" 
-            stroke="currentColor" 
-            strokeWidth="1" 
-            className="text-foreground"
-            fill="none"
-          />
-        </g>
+        {/* Square box replacing O */}
+        <rect 
+          x="-8" 
+          y="-12" 
+          width="14" 
+          height="14" 
+          rx="2" 
+          stroke="white" 
+          strokeWidth="2.5" 
+          fill="none"
+        />
         
-        {/* X text */}
+        {/* X */}
         <text 
-          x="72" 
-          y="38" 
+          x="22" 
+          y="0" 
           textAnchor="middle" 
-          className="fill-current text-foreground"
+          fill="white"
           style={{ 
-            fontSize: '14px', 
-            fontWeight: 800, 
-            fontFamily: 'system-ui, sans-serif'
+            fontSize: '16px', 
+            fontWeight: 900, 
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            letterSpacing: '2px'
           }}
         >
           X
         </text>
-      </svg>
-    </div>
+      </g>
+    </svg>
   );
 };
 
@@ -130,54 +108,28 @@ export const LogoIcon = ({ size = 32, className = "" }: { size?: number; classNa
     >
       {/* Border */}
       <rect 
-        x="1" 
-        y="1" 
-        width="30" 
-        height="30" 
-        rx="4" 
+        x="2" 
+        y="2" 
+        width="28" 
+        height="28" 
+        rx="3" 
         stroke="currentColor" 
-        strokeWidth="2" 
+        strokeWidth="2.5" 
         className="text-primary"
         fill="none"
       />
       
-      {/* Box icon */}
-      <g transform="translate(7, 8)">
-        {/* Box body */}
-        <rect 
-          x="0" 
-          y="6" 
-          width="18" 
-          height="12" 
-          rx="2" 
-          stroke="currentColor" 
-          strokeWidth="1.5" 
-          className="text-foreground"
-          fill="none"
-        />
-        {/* Box lid */}
-        <path 
-          d="M-1 6 L9 1 L19 6" 
-          stroke="currentColor" 
-          strokeWidth="1.5" 
-          className="text-foreground"
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        {/* Box handle */}
-        <rect 
-          x="6" 
-          y="10" 
-          width="6" 
-          height="4" 
-          rx="1" 
-          stroke="currentColor" 
-          strokeWidth="1" 
-          className="text-foreground"
-          fill="none"
-        />
-      </g>
+      {/* Inner square (box) */}
+      <rect 
+        x="10" 
+        y="10" 
+        width="12" 
+        height="12" 
+        rx="2" 
+        stroke="white" 
+        strokeWidth="2" 
+        fill="none"
+      />
     </svg>
   );
 };
