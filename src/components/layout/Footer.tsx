@@ -17,7 +17,7 @@ const resourceLinks = [
 
 export const Footer = () => {
   return (
-    <footer className="border-t border-border mt-20">
+    <footer className="border-t border-border mt-20 relative z-10">
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="grid md:grid-cols-4 gap-8">
           {/* Logo & Description */}

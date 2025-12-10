@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AnimatedBackground } from '@/components/layout/AnimatedBackground';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { TabNavigation } from '@/components/layout/TabNavigation';
@@ -22,7 +23,9 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
+      <AnimatedBackground />
+      
       <Header 
         walletConnected={walletConnected}
         walletAddress={walletAddress}
@@ -35,16 +38,16 @@ const Index = () => {
         onTabChange={setActiveTab}
       />
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="max-w-7xl mx-auto px-6 py-8 relative z-10">
         {activeTab === 'swap' && (
-          <SwapTab 
-            walletConnected={walletConnected}
-            onConnect={connectWallet}
-          />
+          <SwapTab walletConnected={walletConnected} />
         )}
         
         {activeTab === 'pool' && (
-          <PoolTab walletConnected={walletConnected} />
+          <PoolTab 
+            walletConnected={walletConnected}
+            onNavigateToYield={() => setActiveTab('yield')}
+          />
         )}
         
         {activeTab === 'yield' && (

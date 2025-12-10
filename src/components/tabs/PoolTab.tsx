@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { Plus, Minus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 const tokens = ['UNI', 'WBTC', 'WETH', 'USDC', 'USDT'];
 
@@ -25,16 +24,17 @@ interface Pool {
 
 interface PoolTabProps {
   walletConnected: boolean;
+  onNavigateToYield: () => void;
 }
 
-export const PoolTab = ({ walletConnected }: PoolTabProps) => {
+export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) => {
   const [poolSubTab, setPoolSubTab] = useState('available');
   const [selectedPool, setSelectedPool] = useState<Pool | null>(null);
   const [selectedYieldToken, setSelectedYieldToken] = useState('UNI');
 
   if (selectedPool) {
     return (
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-6">
         {/* Back Button */}
         <button
           onClick={() => setSelectedPool(null)}
@@ -67,144 +67,12 @@ export const PoolTab = ({ walletConnected }: PoolTabProps) => {
           </div>
         </div>
 
-        {/* Manage Liquidity Card */}
+        {/* Manage Liquidity */}
         <div className="glass-card p-6">
           <h2 className="text-2xl font-bold mb-6">Manage Liquidity</h2>
           
-          {/* Add/Remove Buttons */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <Button
-              variant="secondary"
-              disabled={!walletConnected}
-              className="py-6"
-            >
-              <Plus size={20} />
-              Add Liquidity
-            </Button>
-            <Button
-              variant="outline"
-              disabled={!walletConnected}
-              className="py-6"
-            >
-              <Minus size={20} />
-              Remove Liquidity
-            </Button>
-          </div>
-
-          {/* Price Range Selection */}
-          <div className="glass-card p-4 mb-6">
-            <label className="text-sm font-semibold block mb-3">Set Price Range</label>
-            <p className="text-xs text-muted-foreground mb-4">Select the price range where your liquidity will be active</p>
-            
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="text-xs text-muted-foreground block mb-2">Min Price</label>
-                <input
-                  type="number"
-                  placeholder="0.0"
-                  className="w-full bg-glass px-4 py-3 rounded-lg outline-none border border-border focus:border-primary/50 transition-all text-sm"
-                  disabled={!walletConnected}
-                />
-                <p className="text-xs text-muted-foreground mt-1">{selectedPool.name.split('-')[0]} per {selectedPool.name.split('-')[1]}</p>
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground block mb-2">Max Price</label>
-                <input
-                  type="number"
-                  placeholder="0.0"
-                  className="w-full bg-glass px-4 py-3 rounded-lg outline-none border border-border focus:border-primary/50 transition-all text-sm"
-                  disabled={!walletConnected}
-                />
-                <p className="text-xs text-muted-foreground mt-1">{selectedPool.name.split('-')[0]} per {selectedPool.name.split('-')[1]}</p>
-              </div>
-            </div>
-
-            {/* Current Price Indicator */}
-            <div className="bg-primary/10 backdrop-blur-sm rounded-lg p-3 border border-primary/20">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">Current Price</span>
-                <span className="font-bold text-primary">1.0002</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Liquidity Distribution Graph */}
-          <div className="glass-card p-4 mb-6">
-            <label className="text-sm font-semibold block mb-3">Liquidity Distribution</label>
-            <div className="relative h-48 bg-background/30 rounded-lg p-4">
-              <div className="absolute bottom-0 left-0 right-0 h-px bg-border"></div>
-              
-              <div className="flex items-end justify-center h-full gap-1">
-                {[20, 35, 50, 70, 85, 95, 100, 95, 85, 70, 50, 35, 20].map((height, i) => (
-                  <div
-                    key={i}
-                    className={`flex-1 rounded-t transition-all ${
-                      i >= 5 && i <= 7 
-                        ? 'bg-primary/60' 
-                        : 'bg-blue-500/20'
-                    }`}
-                    style={{ height: `${height}%` }}
-                  />
-                ))}
-              </div>
-              
-              <div className="absolute left-1/2 bottom-0 w-px h-full bg-primary/50 -translate-x-1/2">
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-primary rounded-full"></div>
-                <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-primary whitespace-nowrap">
-                  Current
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-center gap-6 mt-4 text-xs">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-blue-500/20 rounded"></div>
-                <span className="text-muted-foreground">Total Liquidity</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-primary/60 rounded"></div>
-                <span className="text-muted-foreground">Your Range</span>
-              </div>
-            </div>
-          </div>
-          
-          {/* Token Amount Inputs */}
-          <div className="grid md:grid-cols-2 gap-4 mb-6">
-            <div className="glass-card p-4">
-              <label className="text-sm text-muted-foreground block mb-2">Token A</label>
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  placeholder="0.0"
-                  className="flex-1 bg-glass px-4 py-3 rounded-lg outline-none border border-border focus:border-primary/50 transition-all"
-                  disabled={!walletConnected}
-                />
-                <div className="bg-glass-hover px-4 py-2 rounded-lg font-semibold border border-border">
-                  {selectedPool.name.split('-')[0]}
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">Balance: 1,245.50</p>
-            </div>
-            
-            <div className="glass-card p-4">
-              <label className="text-sm text-muted-foreground block mb-2">Token B</label>
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  placeholder="0.0"
-                  className="flex-1 bg-glass px-4 py-3 rounded-lg outline-none border border-border focus:border-primary/50 transition-all"
-                  disabled={!walletConnected}
-                />
-                <div className="bg-glass-hover px-4 py-2 rounded-lg font-semibold border border-border">
-                  {selectedPool.name.split('-')[1]}
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">Balance: 89.23</p>
-            </div>
-          </div>
-
           {/* Yield Token Preference */}
-          <div className="glass-card p-4 border-primary/20">
+          <div className="glass-card p-4 mb-6 border-primary/20">
             <label className="text-sm font-semibold block mb-3">Yield Token Preference</label>
             <p className="text-xs text-muted-foreground mb-4">Choose which token you want to receive from fee conversions</p>
             <div className="grid grid-cols-2 gap-3">
@@ -214,7 +82,7 @@ export const PoolTab = ({ walletConnected }: PoolTabProps) => {
                   className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border ${
                     selectedYieldToken === token
                       ? 'bg-primary/10 border-primary'
-                      : 'bg-glass border-border hover:bg-glass-hover'
+                      : 'bg-glass border-glass-border hover:bg-glass-hover'
                   } ${!walletConnected && 'opacity-50 cursor-not-allowed'}`}
                 >
                   <input
@@ -231,14 +99,137 @@ export const PoolTab = ({ walletConnected }: PoolTabProps) => {
               ))}
             </div>
           </div>
+
+          {/* Price Range */}
+          <div className="glass-card p-4 mb-6">
+            <label className="text-sm font-semibold block mb-3">Set Price Range</label>
+            <p className="text-xs text-muted-foreground mb-4">Select the price range where your liquidity will be active</p>
+            
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="text-xs text-muted-foreground block mb-2">Min Price</label>
+                <input
+                  type="number"
+                  placeholder="0.0"
+                  className="w-full bg-glass px-4 py-3 rounded-lg outline-none border border-glass-border focus:border-primary/50 transition-all text-sm"
+                  disabled={!walletConnected}
+                />
+                <p className="text-xs text-muted-foreground mt-1">{selectedPool.name.split('-')[0]} per {selectedPool.name.split('-')[1]}</p>
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground block mb-2">Max Price</label>
+                <input
+                  type="number"
+                  placeholder="0.0"
+                  className="w-full bg-glass px-4 py-3 rounded-lg outline-none border border-glass-border focus:border-primary/50 transition-all text-sm"
+                  disabled={!walletConnected}
+                />
+                <p className="text-xs text-muted-foreground mt-1">{selectedPool.name.split('-')[0]} per {selectedPool.name.split('-')[1]}</p>
+              </div>
+            </div>
+
+            <div className="bg-primary/10 backdrop-blur-sm rounded-lg p-3 border border-primary/20">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-muted-foreground">Current Price</span>
+                <span className="font-bold text-primary">1.0002</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Liquidity Distribution */}
+          <div className="glass-card p-4 mb-6">
+            <label className="text-sm font-semibold block mb-3">Liquidity Distribution</label>
+            <div className="relative h-48 bg-background/30 rounded-lg p-4">
+              <div className="absolute bottom-0 left-0 right-0 h-px bg-border"></div>
+              
+              <div className="flex items-end justify-center h-full gap-1">
+                {[20, 35, 50, 70, 85, 95, 100, 95, 85, 70, 50, 35, 20].map((height, i) => (
+                  <div
+                    key={i}
+                    className={`flex-1 rounded-t transition-all ${
+                      i >= 5 && i <= 7 
+                        ? 'bg-primary/60' 
+                        : 'bg-secondary/20'
+                    }`}
+                    style={{ height: `${height}%` }}
+                  />
+                ))}
+              </div>
+              
+              <div className="absolute left-1/2 bottom-0 w-px h-full bg-primary/50 -translate-x-1/2">
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-primary rounded-full"></div>
+                <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-primary whitespace-nowrap">
+                  Current
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-center gap-6 mt-4 text-xs">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-secondary/20 rounded"></div>
+                <span className="text-muted-foreground">Total Liquidity</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-primary/60 rounded"></div>
+                <span className="text-muted-foreground">Your Range</span>
+              </div>
+            </div>
+          </div>
+          
+          {/* Token Inputs */}
+          <div className="grid md:grid-cols-2 gap-4 mb-6">
+            <div className="glass-card p-4">
+              <label className="text-sm text-muted-foreground block mb-2">Token A</label>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  placeholder="0.0"
+                  className="flex-1 bg-glass px-4 py-3 rounded-lg outline-none border border-glass-border focus:border-primary/50 transition-all"
+                  disabled={!walletConnected}
+                />
+                <div className="bg-glass-hover px-4 py-2 rounded-lg font-semibold border border-glass-border flex items-center">
+                  {selectedPool.name.split('-')[0]}
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">Balance: 1,245.50</p>
+            </div>
+            
+            <div className="glass-card p-4">
+              <label className="text-sm text-muted-foreground block mb-2">Token B</label>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  placeholder="0.0"
+                  className="flex-1 bg-glass px-4 py-3 rounded-lg outline-none border border-glass-border focus:border-primary/50 transition-all"
+                  disabled={!walletConnected}
+                />
+                <div className="bg-glass-hover px-4 py-2 rounded-lg font-semibold border border-glass-border flex items-center">
+                  {selectedPool.name.split('-')[1]}
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">Balance: 89.23</p>
+            </div>
+          </div>
+
+          <button
+            disabled={!walletConnected}
+            className={`w-full flex items-center justify-center gap-2 py-4 rounded-lg font-bold transition-all ${
+              walletConnected
+                ? 'bg-primary/20 border border-primary/50 text-primary hover:bg-primary/30'
+                : 'bg-glass text-muted-foreground cursor-not-allowed border border-glass-border'
+            }`}
+          >
+            <Plus size={20} />
+            Add Liquidity
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Pool Subtitle Navigation */}
+    <div className="space-y-6">
+      {/* Pool Sub-tabs */}
       <div className="flex gap-4 border-b border-border">
         <button 
           onClick={() => setPoolSubTab('available')}
@@ -264,7 +255,7 @@ export const PoolTab = ({ walletConnected }: PoolTabProps) => {
         )}
       </div>
 
-      {/* Available Pools View */}
+      {/* Available Pools */}
       {poolSubTab === 'available' && (
         <div className="glass-card p-6">
           <h2 className="text-2xl font-bold mb-6">Available Pools</h2>
@@ -300,22 +291,18 @@ export const PoolTab = ({ walletConnected }: PoolTabProps) => {
         </div>
       )}
 
-      {/* Positions View */}
+      {/* Positions */}
       {poolSubTab === 'positions' && walletConnected && (
         <div className="glass-card p-6">
           <h2 className="text-2xl font-bold mb-6">Your Positions</h2>
           <div className="space-y-4">
             {positions.map((pos, i) => (
-              <div 
-                key={i} 
-                className="glass-card p-4 hover:bg-glass-hover transition-all cursor-pointer"
-                onClick={() => setSelectedPool(pools.find(p => p.name === pos.pool) || null)}
-              >
+              <div key={i} className="glass-card p-4 hover:bg-glass-hover transition-all border-glass-border">
                 <div className="flex justify-between items-center mb-3">
                   <h3 className="text-lg font-bold">{pos.pool}</h3>
                   <span className="text-xl font-bold text-primary">{pos.value}</span>
                 </div>
-                <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="grid grid-cols-3 gap-4 text-sm mb-3">
                   <div>
                     <p className="text-muted-foreground">Liquidity</p>
                     <p className="font-semibold text-foreground/80">{pos.liquidity}</p>
@@ -325,11 +312,16 @@ export const PoolTab = ({ walletConnected }: PoolTabProps) => {
                     <p className="font-semibold text-foreground/80">{pos.share}</p>
                   </div>
                   <div className="text-right">
-                    <span className="text-primary hover:text-primary/80 transition-all">
-                      Manage →
-                    </span>
+                    <p className="text-muted-foreground">Yield Token</p>
+                    <p className="font-semibold text-primary">UNI</p>
                   </div>
                 </div>
+                <button
+                  onClick={onNavigateToYield}
+                  className="w-full py-2 px-4 rounded-lg bg-primary/20 border border-primary/50 text-primary hover:bg-primary/30 transition-all text-sm font-semibold"
+                >
+                  Manage Position →
+                </button>
               </div>
             ))}
           </div>
