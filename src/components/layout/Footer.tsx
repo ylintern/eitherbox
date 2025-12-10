@@ -1,5 +1,5 @@
 import { Calendar, Send, Twitter, FileText } from 'lucide-react';
-import { Logo, LogoIcon } from '@/components/ui/Logo';
+import { Logo } from '@/components/ui/Logo';
 
 const socialLinks = [
   { icon: Calendar, label: 'Book a Call', href: 'https://cal.com/yield-lounge/30min' },
@@ -22,11 +22,10 @@ export const Footer = () => {
         <div className="grid md:grid-cols-4 gap-8">
           {/* Logo & Description */}
           <div className="md:col-span-2">
-            <div className="flex items-center gap-3 mb-2">
-              <LogoIcon size={32} />
-              <span className="text-lg font-bold">Either Box</span>
+          <div className="flex items-center gap-2 mb-2">
+              <Logo size={36} />
+              <span className="text-xs text-muted-foreground">by Yield Lounge</span>
             </div>
-            <p className="text-xs text-primary mb-4">by Yield Lounge</p>
             <p className="text-sm text-muted-foreground mb-6 max-w-md">
               Automated yield conversion protocol built on Uniswap v4. Convert your LP fees into your preferred yield tokens seamlessly.
             </p>
