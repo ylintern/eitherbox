@@ -1,12 +1,61 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from 'react';
+import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
+import { TabNavigation } from '@/components/layout/TabNavigation';
+import { SwapTab } from '@/components/tabs/SwapTab';
+import { PoolTab } from '@/components/tabs/PoolTab';
+import { YieldTab } from '@/components/tabs/YieldTab';
 
 const Index = () => {
+  const [activeTab, setActiveTab] = useState('pool');
+  const [walletConnected, setWalletConnected] = useState(false);
+  const [walletAddress, setWalletAddress] = useState('');
+
+  const connectWallet = async () => {
+    setWalletConnected(true);
+    setWalletAddress('0x742d...4b3c');
+  };
+
+  const disconnectWallet = () => {
+    setWalletConnected(false);
+    setWalletAddress('');
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background text-foreground">
+      <Header 
+        walletConnected={walletConnected}
+        walletAddress={walletAddress}
+        onConnect={connectWallet}
+        onDisconnect={disconnectWallet}
+      />
+      
+      <TabNavigation 
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
+
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        {activeTab === 'swap' && (
+          <SwapTab 
+            walletConnected={walletConnected}
+            onConnect={connectWallet}
+          />
+        )}
+        
+        {activeTab === 'pool' && (
+          <PoolTab walletConnected={walletConnected} />
+        )}
+        
+        {activeTab === 'yield' && (
+          <YieldTab 
+            walletConnected={walletConnected}
+            onConnect={connectWallet}
+          />
+        )}
+      </main>
+
+      <Footer />
     </div>
   );
 };
