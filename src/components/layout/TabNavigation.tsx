@@ -19,7 +19,7 @@ interface TabNavigationProps {
 
 export const TabNavigation = ({ activeTab, onTabChange }: TabNavigationProps) => {
   return (
-    <div className="max-w-7xl mx-auto px-6 pt-6">
+    <div className="max-w-7xl mx-auto px-6 pt-6 relative z-10">
       <div className="flex gap-2 border-b border-border">
         {tabs.map(tab => (
           <button
@@ -27,7 +27,7 @@ export const TabNavigation = ({ activeTab, onTabChange }: TabNavigationProps) =>
             onClick={() => onTabChange(tab.id)}
             className={`flex items-center gap-2 px-6 py-3 rounded-t-lg transition-all ${
               activeTab === tab.id
-                ? 'glass border-b-2 border-primary text-foreground'
+                ? 'bg-glass border-b-2 border-primary text-foreground backdrop-blur-sm'
                 : 'text-muted-foreground hover:text-foreground hover:bg-glass'
             }`}
           >
