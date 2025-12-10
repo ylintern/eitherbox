@@ -18,8 +18,9 @@ export const Header = ({
     <header className="border-b border-border backdrop-blur-xl bg-background/40 relative z-10">
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <Logo size={48} />
+          <div className="flex items-center gap-2">
+            <Logo size={40} />
+            <span className="text-xs text-muted-foreground hidden sm:block">by Yield Lounge</span>
           </div>
           
           {walletConnected ? (
