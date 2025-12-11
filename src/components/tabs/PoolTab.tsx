@@ -42,6 +42,59 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
   const basePrice = selectedPool?.price ?? 1;
   const currentPrice = isTokenOrderReversed ? 1 / basePrice : basePrice;
 
+  // Time range affects price range spread (volatility window)
+  const getTimeRangeMultiplier = () => {
+    switch (timeRange) {
+      case '1D': return 0.1;  // ±10% range
+      case '7D': return 0.25; // ±25% range
+      case '30D': return 0.5; // ±50% range
+      case '1Y': return 1.0;  // ±100% range
+      default: return 0.5;
+    }
+  };
+  
+  const priceRangeMultiplier = getTimeRangeMultiplier();
+  const chartMin = currentPrice * (1 - priceRangeMultiplier);
+  const chartMax = currentPrice * (1 + priceRangeMultiplier);
+  const chartRange = chartMax - chartMin;
+
+  // Generate date labels based on time range
+  const getDateLabels = () => {
+    const now = new Date();
+    const labels: string[] = [];
+    switch (timeRange) {
+      case '1D':
+        for (let i = 0; i <= 4; i++) {
+          const hour = new Date(now.getTime() - (24 - i * 6) * 60 * 60 * 1000);
+          labels.push(hour.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
+        }
+        break;
+      case '7D':
+        for (let i = 0; i <= 4; i++) {
+          const day = new Date(now.getTime() - (7 - i * 1.75) * 24 * 60 * 60 * 1000);
+          labels.push(day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+        }
+        break;
+      case '30D':
+        for (let i = 0; i <= 4; i++) {
+          const day = new Date(now.getTime() - (30 - i * 7.5) * 24 * 60 * 60 * 1000);
+          labels.push(day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+        }
+        break;
+      case '1Y':
+        for (let i = 0; i <= 4; i++) {
+          const month = new Date(now.getTime() - (365 - i * 91) * 24 * 60 * 60 * 1000);
+          labels.push(month.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }));
+        }
+        break;
+      default:
+        labels.push('', '', '', '', '');
+    }
+    return labels;
+  };
+  
+  const dateLabels = getDateLabels();
+
   const formatPrice = (price: number) => {
     if (!price || !isFinite(price)) return '0';
     if (price >= 10000) return price.toFixed(0);
@@ -279,12 +332,16 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
               </div>
               
               {/* Main chart area */}
-              <div className="flex-1 relative h-32 bg-muted/20 rounded-[16px] overflow-hidden">
-                {/* Active range gradient overlay */}
+              <div className="flex-1 flex flex-col">
+                {/* Date scale on top */}
+                <div className="flex justify-between items-center text-[9px] text-muted-foreground px-1 pb-1">
+                  {dateLabels.map((label, i) => (
+                    <span key={i}>{label}</span>
+                  ))}
+                </div>
+                
+                <div className="flex-1 relative bg-muted/20 rounded-[16px] overflow-hidden">
                 {(() => {
-                  const chartMin = currentPrice * 0.5;
-                  const chartMax = currentPrice * 1.5;
-                  const chartRange = chartMax - chartMin;
                   const minVal = parseFloat(minPrice) || currentPrice * 0.97;
                   const maxVal = parseFloat(maxPrice) || currentPrice * 1.03;
                   const leftPos = ((minVal - chartMin) / chartRange) * 100;
@@ -375,21 +432,15 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                     // Determine bar type: empty (15%), low/average (60%), spike (25%)
                     let tvl: number;
                     if (random < 0.15) {
-                      // Empty/very low
                       tvl = random * 100_000;
                     } else if (random < 0.75) {
-                      // Average around 1M with variation
                       tvl = 500_000 + (Math.sin(i * 0.5) * 0.5 + 0.5) * 1_500_000;
                     } else {
-                      // Spikes between 20M-50M
                       tvl = 20_000_000 + (Math.sin(i * 2.1) * 0.5 + 0.5) * 30_000_000;
                     }
                     
                     const height = Math.min(100, Math.max(0.5, (tvl / maxTVL) * 100));
                     
-                    const chartMin = currentPrice * 0.5;
-                    const chartMax = currentPrice * 1.5;
-                    const chartRange = chartMax - chartMin;
                     const minVal = parseFloat(minPrice) || currentPrice * 0.97;
                     const maxVal = parseFloat(maxPrice) || currentPrice * 1.03;
                     const totalBars = 200;
@@ -413,19 +464,20 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                   <div className="absolute top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-primary rounded-full shadow-lg shadow-primary/50" />
                 </div>
               </div>
+            </div>
               
             </div>
             
             {/* Price scale axis */}
             <div className="ml-12 flex justify-between items-center mt-2 text-[10px] text-muted-foreground">
-              <span>{formatPrice(currentPrice * 0.5)}</span>
-              <span>{formatPrice(currentPrice * 0.75)}</span>
+              <span>{formatPrice(chartMin)}</span>
+              <span>{formatPrice(chartMin + chartRange * 0.25)}</span>
               <div className="flex flex-col items-center">
                 <span className="text-primary font-semibold">{formatPrice(currentPrice)}</span>
                 <span className="text-[8px]">Current</span>
               </div>
-              <span>{formatPrice(currentPrice * 1.25)}</span>
-              <span>{formatPrice(currentPrice * 1.5)}</span>
+              <span>{formatPrice(chartMin + chartRange * 0.75)}</span>
+              <span>{formatPrice(chartMax)}</span>
             </div>
             
             {/* Range values display */}
