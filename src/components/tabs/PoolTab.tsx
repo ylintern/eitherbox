@@ -38,16 +38,30 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
   
-  const currentPrice = selectedPool?.price ?? 1;
+  const basePrice = selectedPool?.price ?? 1;
+  const currentPrice = isTokenOrderReversed ? 1 / basePrice : basePrice;
+
+  const formatPrice = (price: number) => {
+    if (price >= 1000) return price.toFixed(2);
+    if (price >= 1) return price.toFixed(4);
+    if (price >= 0.0001) return price.toFixed(6);
+    return price.toFixed(8);
+  };
 
   const handleRangeSelect = (range: string) => {
     setSelectedRange(range);
     const percentage = parseInt(range.split('/')[0]) / 100;
-    const decimals = currentPrice >= 1000 ? 2 : currentPrice >= 1 ? 4 : 6;
-    const min = (currentPrice * (1 - percentage)).toFixed(decimals);
-    const max = (currentPrice * (1 + percentage)).toFixed(decimals);
-    setMinPrice(min);
-    setMaxPrice(max);
+    const min = currentPrice * (1 - percentage);
+    const max = currentPrice * (1 + percentage);
+    setMinPrice(formatPrice(min));
+    setMaxPrice(formatPrice(max));
+  };
+
+  const handleTokenOrderSwitch = () => {
+    setIsTokenOrderReversed(!isTokenOrderReversed);
+    setMinPrice('');
+    setMaxPrice('');
+    setSelectedRange(null);
   };
 
   const getTokenPair = () => {
@@ -143,7 +157,7 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-semibold">Set Price Range</label>
               <button
-                onClick={() => setIsTokenOrderReversed(!isTokenOrderReversed)}
+                onClick={handleTokenOrderSwitch}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/30 border border-bubble-border hover:border-primary/30 hover:bg-bubble-hover transition-all duration-300 text-xs"
               >
                 <ArrowLeftRight size={14} />
@@ -200,7 +214,7 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
             <div className="bg-primary/10 backdrop-blur-sm rounded-full p-4 border border-primary/20">
               <div className="flex justify-between items-center text-sm">
                 <span className="text-muted-foreground">Current Price</span>
-                <span className="font-bold text-primary">{currentPrice} {tokenA}/{tokenB}</span>
+                <span className="font-bold text-primary">{formatPrice(currentPrice)} {tokenA}/{tokenB}</span>
               </div>
             </div>
           </div>
