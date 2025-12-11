@@ -111,8 +111,8 @@ export default {
           "50%": { transform: "scale(1.05)", opacity: "1" },
         },
         "logo-pulse": {
-          "0%, 100%": { opacity: "0.3", transform: "scale(0.95)" },
-          "50%": { opacity: "0.6", transform: "scale(1.05)" },
+          "0%, 100%": { opacity: "0.2", transform: "scale(0.98)" },
+          "50%": { opacity: "0.4", transform: "scale(1.02)" },
         },
       },
       animation: {
@@ -122,7 +122,7 @@ export default {
         "float": "float 6s ease-in-out infinite",
         "orbit": "orbit 20s linear infinite",
         "bubble-pulse": "bubble-pulse 4s ease-in-out infinite",
-        "logo-pulse": "logo-pulse 3s ease-in-out infinite",
+        "logo-pulse": "logo-pulse 5s ease-in-out infinite",
       },
       boxShadow: {
         'bubble': '0 4px 60px -12px hsl(var(--bubble-glow)), inset 0 1px 1px hsl(0 0% 100% / 0.05)',
