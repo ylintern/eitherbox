@@ -103,7 +103,7 @@ const PositionCard = ({
             <div className="mb-5">
               <div className="flex justify-between items-center mb-3">
                 <span className="text-xs text-muted-foreground">Amount to Remove</span>
-                <span className="text-lg font-bold text-yellow px-4 py-1 rounded-full bg-yellow/10 border border-yellow/30">
+                <span className="text-lg font-bold text-foreground px-4 py-1 rounded-full bg-foreground/10 border border-foreground/30">
                   {closePercentage}%
                 </span>
               </div>
@@ -132,7 +132,7 @@ const PositionCard = ({
                 value={closePercentage}
                 onChange={(e) => setClosePercentage(Math.min(100, Math.max(0, Number(e.target.value))))}
                 placeholder="0"
-                className="flex-1 bg-bubble px-5 py-3 rounded-full outline-none border border-bubble-border focus:border-yellow/50 transition-all duration-300 text-sm"
+                className="flex-1 bg-bubble px-5 py-3 rounded-full outline-none border border-bubble-border focus:border-foreground/50 transition-all duration-300 text-sm"
               />
               <div className="bg-bubble-hover px-5 py-3 rounded-full font-semibold border border-bubble-border flex items-center">
                 %
@@ -146,8 +146,8 @@ const PositionCard = ({
                   onClick={() => setClosePercentage(percent)}
                   className={`py-3 px-3 rounded-full text-xs font-semibold transition-all duration-300 ${
                     closePercentage === percent
-                      ? 'bg-yellow/20 border-2 border-yellow/50 text-yellow'
-                      : 'bg-bubble border border-bubble-border text-muted-foreground hover:bg-bubble-hover hover:border-yellow/30'
+                      ? 'bg-foreground/20 border-2 border-foreground/50 text-foreground'
+                      : 'bg-bubble border border-bubble-border text-muted-foreground hover:bg-bubble-hover hover:border-foreground/30'
                   }`}
                 >
                   {percent}%
