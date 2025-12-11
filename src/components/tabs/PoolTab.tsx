@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, ArrowLeft } from 'lucide-react';
 
 const tokens = ['UNI', 'WBTC', 'WETH', 'USDC', 'USDT'];
 
@@ -34,57 +34,68 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
 
   if (selectedPool) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 max-w-4xl mx-auto">
         {/* Back Button */}
         <button
           onClick={() => setSelectedPool(null)}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-all"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-bubble border border-bubble-border text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all duration-300"
         >
-          ← Back to Pools
+          <ArrowLeft size={16} />
+          Back to Pools
         </button>
 
         {/* Pool Details */}
-        <div className="glass-card p-6">
-          <div className="flex justify-between items-start mb-6">
+        <div className="bubble p-8">
+          <div className="flex justify-between items-start mb-8">
             <div>
               <h2 className="text-3xl font-bold mb-2">{selectedPool.name}</h2>
-              <p className="text-muted-foreground">Fee Tier: {selectedPool.fee}</p>
+              <span className="inline-block px-4 py-1.5 rounded-full bg-muted/50 text-sm text-muted-foreground">
+                Fee Tier: {selectedPool.fee}
+              </span>
             </div>
             <div className="text-right">
-              <p className="text-3xl font-bold text-primary">{selectedPool.apr}</p>
+              <p className="text-4xl font-bold text-primary">{selectedPool.apr}</p>
               <p className="text-sm text-muted-foreground">APR</p>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div className="glass-card p-4">
-              <p className="text-muted-foreground text-sm mb-1">Total Liquidity</p>
+            <div className="bubble-sm p-5 text-center">
+              <p className="text-muted-foreground text-sm mb-2">Total Liquidity</p>
               <p className="text-2xl font-bold">{selectedPool.tvl}</p>
             </div>
-            <div className="glass-card p-4">
-              <p className="text-muted-foreground text-sm mb-1">24h Volume</p>
+            <div className="bubble-sm p-5 text-center">
+              <p className="text-muted-foreground text-sm mb-2">24h Volume</p>
               <p className="text-2xl font-bold">$1.2M</p>
             </div>
           </div>
         </div>
 
         {/* Manage Liquidity */}
-        <div className="glass-card p-6">
-          <h2 className="text-2xl font-bold mb-6">Manage Liquidity</h2>
+        <div className="bubble p-8">
+          <h2 className="text-2xl font-bold mb-8">Manage Liquidity</h2>
           
           {/* Yield Token Preference */}
-          <div className="glass-card p-4 mb-6 border-primary/20">
-            <label className="text-sm font-semibold block mb-3">Yield Token Preference</label>
-            <p className="text-xs text-muted-foreground mb-4">Choose which token you want to receive from fee conversions</p>
+          <div className="bubble-sm p-6 mb-6 border-primary/20">
+            <label className="text-sm font-semibold block mb-2">Yield Token Preference</label>
+            <p className="text-xs text-muted-foreground mb-5">Choose which token you want to receive from fee conversions</p>
             <div className="grid grid-cols-2 gap-3">
               {tokens.filter(t => ['UNI', 'WBTC', 'WETH', 'USDC'].includes(t)).map(token => (
                 <label
                   key={token}
-                  className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border ${
+                  className={`flex items-center gap-3 p-4 rounded-full cursor-pointer transition-all duration-300 border ${
                     selectedYieldToken === token
-                      ? 'bg-primary/10 border-primary'
-                      : 'bg-glass border-glass-border hover:bg-glass-hover'
+                      ? 'bg-primary/15 border-primary'
+                      : 'bg-muted/30 border-bubble-border hover:bg-bubble-hover hover:border-primary/30'
                   } ${!walletConnected && 'opacity-50 cursor-not-allowed'}`}
                 >
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                    selectedYieldToken === token ? 'border-primary' : 'border-muted-foreground'
+                  }`}>
+                    {selectedYieldToken === token && (
+                      <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+                    )}
+                  </div>
+                  <span className="font-semibold">{token}</span>
                   <input
                     type="radio"
                     name="yieldToken"
@@ -92,43 +103,42 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                     checked={selectedYieldToken === token}
                     onChange={(e) => setSelectedYieldToken(e.target.value)}
                     disabled={!walletConnected}
-                    className="w-4 h-4 accent-primary"
+                    className="sr-only"
                   />
-                  <span className="font-semibold">{token}</span>
                 </label>
               ))}
             </div>
           </div>
 
           {/* Price Range */}
-          <div className="glass-card p-4 mb-6">
-            <label className="text-sm font-semibold block mb-3">Set Price Range</label>
-            <p className="text-xs text-muted-foreground mb-4">Select the price range where your liquidity will be active</p>
+          <div className="bubble-sm p-6 mb-6">
+            <label className="text-sm font-semibold block mb-2">Set Price Range</label>
+            <p className="text-xs text-muted-foreground mb-5">Select the price range where your liquidity will be active</p>
             
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-2 gap-4 mb-5">
               <div>
                 <label className="text-xs text-muted-foreground block mb-2">Min Price</label>
                 <input
                   type="number"
                   placeholder="0.0"
-                  className="w-full bg-glass px-4 py-3 rounded-lg outline-none border border-glass-border focus:border-primary/50 transition-all text-sm"
+                  className="w-full bg-muted/30 px-5 py-3.5 rounded-full outline-none border border-bubble-border focus:border-primary/50 transition-all duration-300 text-sm"
                   disabled={!walletConnected}
                 />
-                <p className="text-xs text-muted-foreground mt-1">{selectedPool.name.split('-')[0]} per {selectedPool.name.split('-')[1]}</p>
+                <p className="text-xs text-muted-foreground mt-2 ml-2">{selectedPool.name.split('-')[0]} per {selectedPool.name.split('-')[1]}</p>
               </div>
               <div>
                 <label className="text-xs text-muted-foreground block mb-2">Max Price</label>
                 <input
                   type="number"
                   placeholder="0.0"
-                  className="w-full bg-glass px-4 py-3 rounded-lg outline-none border border-glass-border focus:border-primary/50 transition-all text-sm"
+                  className="w-full bg-muted/30 px-5 py-3.5 rounded-full outline-none border border-bubble-border focus:border-primary/50 transition-all duration-300 text-sm"
                   disabled={!walletConnected}
                 />
-                <p className="text-xs text-muted-foreground mt-1">{selectedPool.name.split('-')[0]} per {selectedPool.name.split('-')[1]}</p>
+                <p className="text-xs text-muted-foreground mt-2 ml-2">{selectedPool.name.split('-')[0]} per {selectedPool.name.split('-')[1]}</p>
               </div>
             </div>
 
-            <div className="bg-primary/10 backdrop-blur-sm rounded-lg p-3 border border-primary/20">
+            <div className="bg-primary/10 backdrop-blur-sm rounded-full p-4 border border-primary/20">
               <div className="flex justify-between items-center text-sm">
                 <span className="text-muted-foreground">Current Price</span>
                 <span className="font-bold text-primary">1.0002</span>
@@ -137,16 +147,16 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
           </div>
 
           {/* Liquidity Distribution */}
-          <div className="glass-card p-4 mb-6">
-            <label className="text-sm font-semibold block mb-3">Liquidity Distribution</label>
-            <div className="relative h-48 bg-background/30 rounded-lg p-4">
-              <div className="absolute bottom-0 left-0 right-0 h-px bg-border"></div>
+          <div className="bubble-sm p-6 mb-6">
+            <label className="text-sm font-semibold block mb-4">Liquidity Distribution</label>
+            <div className="relative h-48 bg-muted/20 rounded-[24px] p-4 overflow-hidden">
+              <div className="absolute bottom-4 left-4 right-4 h-px bg-border" />
               
-              <div className="flex items-end justify-center h-full gap-1">
+              <div className="flex items-end justify-center h-full gap-1.5 pb-2">
                 {[20, 35, 50, 70, 85, 95, 100, 95, 85, 70, 50, 35, 20].map((height, i) => (
                   <div
                     key={i}
-                    className={`flex-1 rounded-t transition-all ${
+                    className={`flex-1 rounded-full transition-all ${
                       i >= 5 && i <= 7 
                         ? 'bg-primary/60' 
                         : 'bg-secondary/20'
@@ -156,67 +166,67 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                 ))}
               </div>
               
-              <div className="absolute left-1/2 bottom-0 w-px h-full bg-primary/50 -translate-x-1/2">
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-primary rounded-full"></div>
-                <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-primary whitespace-nowrap">
+              <div className="absolute left-1/2 bottom-4 w-0.5 h-[calc(100%-32px)] bg-primary/50 -translate-x-1/2">
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-primary rounded-full shadow-lg shadow-primary/50" />
+                <div className="absolute -top-7 left-1/2 -translate-x-1/2 text-xs text-primary whitespace-nowrap font-medium">
                   Current
                 </div>
               </div>
             </div>
             
-            <div className="flex items-center justify-center gap-6 mt-4 text-xs">
+            <div className="flex items-center justify-center gap-8 mt-5 text-xs">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-secondary/20 rounded"></div>
+                <div className="w-3 h-3 bg-secondary/20 rounded-full" />
                 <span className="text-muted-foreground">Total Liquidity</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-primary/60 rounded"></div>
+                <div className="w-3 h-3 bg-primary/60 rounded-full" />
                 <span className="text-muted-foreground">Your Range</span>
               </div>
             </div>
           </div>
           
           {/* Token Inputs */}
-          <div className="grid md:grid-cols-2 gap-4 mb-6">
-            <div className="glass-card p-4">
-              <label className="text-sm text-muted-foreground block mb-2">Token A</label>
-              <div className="flex gap-2">
+          <div className="grid md:grid-cols-2 gap-4 mb-8">
+            <div className="bubble-sm p-5">
+              <label className="text-sm text-muted-foreground block mb-3">Token A</label>
+              <div className="flex gap-3">
                 <input
                   type="number"
                   placeholder="0.0"
-                  className="flex-1 bg-glass px-4 py-3 rounded-lg outline-none border border-glass-border focus:border-primary/50 transition-all"
+                  className="flex-1 bg-muted/30 px-5 py-3.5 rounded-full outline-none border border-bubble-border focus:border-primary/50 transition-all duration-300"
                   disabled={!walletConnected}
                 />
-                <div className="bg-glass-hover px-4 py-2 rounded-lg font-semibold border border-glass-border flex items-center">
+                <div className="bg-bubble-hover px-5 py-3 rounded-full font-semibold border border-bubble-border flex items-center">
                   {selectedPool.name.split('-')[0]}
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-2">Balance: 1,245.50</p>
+              <p className="text-xs text-muted-foreground mt-3 ml-2">Balance: 1,245.50</p>
             </div>
             
-            <div className="glass-card p-4">
-              <label className="text-sm text-muted-foreground block mb-2">Token B</label>
-              <div className="flex gap-2">
+            <div className="bubble-sm p-5">
+              <label className="text-sm text-muted-foreground block mb-3">Token B</label>
+              <div className="flex gap-3">
                 <input
                   type="number"
                   placeholder="0.0"
-                  className="flex-1 bg-glass px-4 py-3 rounded-lg outline-none border border-glass-border focus:border-primary/50 transition-all"
+                  className="flex-1 bg-muted/30 px-5 py-3.5 rounded-full outline-none border border-bubble-border focus:border-primary/50 transition-all duration-300"
                   disabled={!walletConnected}
                 />
-                <div className="bg-glass-hover px-4 py-2 rounded-lg font-semibold border border-glass-border flex items-center">
+                <div className="bg-bubble-hover px-5 py-3 rounded-full font-semibold border border-bubble-border flex items-center">
                   {selectedPool.name.split('-')[1]}
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-2">Balance: 89.23</p>
+              <p className="text-xs text-muted-foreground mt-3 ml-2">Balance: 89.23</p>
             </div>
           </div>
 
           <button
             disabled={!walletConnected}
-            className={`w-full flex items-center justify-center gap-2 py-4 rounded-lg font-bold transition-all ${
+            className={`w-full flex items-center justify-center gap-2 py-4 rounded-full font-bold transition-all duration-300 ${
               walletConnected
-                ? 'bg-primary/20 border border-primary/50 text-primary hover:bg-primary/30'
-                : 'bg-glass text-muted-foreground cursor-not-allowed border border-glass-border'
+                ? 'bg-primary/20 border-2 border-primary/50 text-primary hover:bg-primary/30 shadow-lg shadow-primary/10'
+                : 'bg-muted text-muted-foreground cursor-not-allowed border border-bubble-border'
             }`}
           >
             <Plus size={20} />
@@ -228,61 +238,67 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-4xl mx-auto">
       {/* Pool Sub-tabs */}
-      <div className="flex gap-4 border-b border-border">
-        <button 
-          onClick={() => setPoolSubTab('available')}
-          className={`font-semibold pb-3 transition-all ${
-            poolSubTab === 'available'
-              ? 'text-foreground border-b-2 border-primary'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          Available Pools
-        </button>
-        {walletConnected && (
+      <div className="flex justify-center">
+        <div className="inline-flex gap-2 p-1.5 rounded-full bg-bubble border border-bubble-border">
           <button 
-            onClick={() => setPoolSubTab('positions')}
-            className={`font-semibold pb-3 transition-all ${
-              poolSubTab === 'positions'
-                ? 'text-foreground border-b-2 border-primary'
+            onClick={() => setPoolSubTab('available')}
+            className={`px-6 py-2.5 rounded-full font-semibold transition-all duration-300 ${
+              poolSubTab === 'available'
+                ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            Positions
+            Available Pools
           </button>
-        )}
+          {walletConnected && (
+            <button 
+              onClick={() => setPoolSubTab('positions')}
+              className={`px-6 py-2.5 rounded-full font-semibold transition-all duration-300 ${
+                poolSubTab === 'positions'
+                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Positions
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Available Pools */}
       {poolSubTab === 'available' && (
-        <div className="glass-card p-6">
-          <h2 className="text-2xl font-bold mb-6">Available Pools</h2>
+        <div className="bubble p-8">
+          <h2 className="text-2xl font-bold mb-2">Available Pools</h2>
+          <p className="text-muted-foreground text-sm mb-8">Select a pool to provide liquidity</p>
           <div className="grid md:grid-cols-2 gap-4">
             {pools.map((pool, i) => (
               <div 
                 key={i} 
                 onClick={() => setSelectedPool(pool)}
-                className="glass-card p-6 hover:border-primary/50 transition-all cursor-pointer group"
+                className="bubble-sm p-6 hover:border-primary/50 transition-all duration-300 cursor-pointer group"
               >
-                <div className="flex justify-between items-start mb-4">
+                <div className="flex justify-between items-start mb-5">
                   <div>
                     <h3 className="text-xl font-bold mb-1 group-hover:text-primary transition-colors">{pool.name}</h3>
-                    <p className="text-sm text-muted-foreground">Fee Tier: {pool.fee}</p>
+                    <span className="inline-block px-3 py-1 rounded-full bg-muted/50 text-xs text-muted-foreground">
+                      Fee: {pool.fee}
+                    </span>
                   </div>
                   <div className="text-right">
                     <p className="text-2xl font-bold text-primary">{pool.apr}</p>
                     <p className="text-xs text-muted-foreground">APR</p>
                   </div>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-sm mb-4">
                   <span className="text-muted-foreground">Total Liquidity</span>
                   <span className="font-semibold text-foreground/80">{pool.tvl}</span>
                 </div>
-                <div className="mt-4 flex justify-end">
-                  <span className="text-primary text-sm group-hover:text-primary/80">
-                    Manage Pool →
+                <div className="flex justify-end">
+                  <span className="inline-flex items-center gap-1 text-primary text-sm group-hover:gap-2 transition-all">
+                    Manage Pool
+                    <span className="text-lg">→</span>
                   </span>
                 </div>
               </div>
@@ -293,32 +309,33 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
 
       {/* Positions */}
       {poolSubTab === 'positions' && walletConnected && (
-        <div className="glass-card p-6">
-          <h2 className="text-2xl font-bold mb-6">Your Positions</h2>
+        <div className="bubble p-8">
+          <h2 className="text-2xl font-bold mb-2">Your Positions</h2>
+          <p className="text-muted-foreground text-sm mb-8">Manage your active liquidity positions</p>
           <div className="space-y-4">
             {positions.map((pos, i) => (
-              <div key={i} className="glass-card p-4 hover:bg-glass-hover transition-all border-glass-border">
-                <div className="flex justify-between items-center mb-3">
+              <div key={i} className="bubble-sm p-6 hover:border-primary/30 transition-all duration-300">
+                <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-bold">{pos.pool}</h3>
                   <span className="text-xl font-bold text-primary">{pos.value}</span>
                 </div>
-                <div className="grid grid-cols-3 gap-4 text-sm mb-3">
-                  <div>
-                    <p className="text-muted-foreground">Liquidity</p>
+                <div className="grid grid-cols-3 gap-4 text-sm mb-5">
+                  <div className="text-center p-3 rounded-full bg-muted/30">
+                    <p className="text-muted-foreground text-xs mb-1">Liquidity</p>
                     <p className="font-semibold text-foreground/80">{pos.liquidity}</p>
                   </div>
-                  <div>
-                    <p className="text-muted-foreground">Pool Share</p>
+                  <div className="text-center p-3 rounded-full bg-muted/30">
+                    <p className="text-muted-foreground text-xs mb-1">Pool Share</p>
                     <p className="font-semibold text-foreground/80">{pos.share}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-muted-foreground">Yield Token</p>
+                  <div className="text-center p-3 rounded-full bg-primary/10">
+                    <p className="text-muted-foreground text-xs mb-1">Yield Token</p>
                     <p className="font-semibold text-primary">UNI</p>
                   </div>
                 </div>
                 <button
                   onClick={onNavigateToYield}
-                  className="w-full py-2 px-4 rounded-lg bg-primary/20 border border-primary/50 text-primary hover:bg-primary/30 transition-all text-sm font-semibold"
+                  className="w-full py-3 px-4 rounded-full bg-primary/20 border border-primary/50 text-primary hover:bg-primary/30 transition-all duration-300 text-sm font-semibold"
                 >
                   Manage Position →
                 </button>

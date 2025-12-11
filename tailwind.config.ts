@@ -55,6 +55,12 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        bubble: {
+          DEFAULT: "hsl(var(--bubble))",
+          border: "hsl(var(--bubble-border))",
+          hover: "hsl(var(--bubble-hover))",
+          glow: "hsl(var(--bubble-glow))",
+        },
         glass: {
           DEFAULT: "hsl(var(--glass))",
           border: "hsl(var(--glass-border))",
@@ -75,6 +81,9 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        bubble: "40px",
+        "bubble-sm": "24px",
+        orb: "50%",
       },
       keyframes: {
         "accordion-down": {
@@ -93,12 +102,27 @@ export default {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-20px)" },
         },
+        "orbit": {
+          "0%": { transform: "rotate(0deg) translateX(100px) rotate(0deg)" },
+          "100%": { transform: "rotate(360deg) translateX(100px) rotate(-360deg)" },
+        },
+        "bubble-pulse": {
+          "0%, 100%": { transform: "scale(1)", opacity: "0.8" },
+          "50%": { transform: "scale(1.05)", opacity: "1" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
         "float": "float 6s ease-in-out infinite",
+        "orbit": "orbit 20s linear infinite",
+        "bubble-pulse": "bubble-pulse 4s ease-in-out infinite",
+      },
+      boxShadow: {
+        'bubble': '0 4px 60px -12px hsl(var(--bubble-glow)), inset 0 1px 1px hsl(0 0% 100% / 0.05)',
+        'bubble-glow': '0 0 80px -20px hsl(var(--primary) / 0.3)',
+        'sphere': 'inset 0 -4px 12px hsl(0 0% 0% / 0.3), inset 0 4px 8px hsl(0 0% 100% / 0.05)',
       },
     },
   },
