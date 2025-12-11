@@ -55,7 +55,7 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
         </div>
 
         {/* From Token Section */}
-        <div className="bubble-sm p-5 mb-3">
+        <div className="bubble-sm p-5">
           <div className="flex justify-between mb-3">
             <span className="text-sm text-muted-foreground">From</span>
             <span className="text-sm text-muted-foreground">Balance: 1,245.50</span>
@@ -107,13 +107,13 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
         </div>
 
         {/* Swap Arrow - Sphere button */}
-        <div className="flex justify-center -my-5 relative z-10">
-          <button className={`w-10 h-10 rounded-full border-[3px] border-background flex items-center justify-center transition-all duration-300 shadow-lg ${
+        <div className="flex justify-center py-3">
+          <button className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg ${
             isCrossChain 
-              ? 'bg-secondary/30 hover:bg-secondary/40 shadow-secondary/20' 
-              : 'bg-primary/30 hover:bg-primary/40 shadow-primary/20'
+              ? 'bg-secondary/20 hover:bg-secondary/30 shadow-secondary/20 border-2 border-secondary/30' 
+              : 'bg-primary/20 hover:bg-primary/30 shadow-primary/20 border-2 border-primary/30'
           }`}>
-            <ArrowUpDown size={16} className={isCrossChain ? 'text-secondary' : 'text-primary'} />
+            <ArrowUpDown size={18} className={isCrossChain ? 'text-secondary' : 'text-primary'} />
           </button>
         </div>
 
