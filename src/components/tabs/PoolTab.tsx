@@ -330,7 +330,7 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                 })()}
                 
                 {/* Bars - full width, 200 bars */}
-                <div className="flex items-end h-full gap-0 px-0 py-2">
+                <div className="flex items-end h-full gap-px px-0 py-2" style={{ backgroundColor: 'black' }}>
                   {Array.from({ length: 200 }, (_, i) => {
                     // Generate bell curve distribution
                     const center = 100;
