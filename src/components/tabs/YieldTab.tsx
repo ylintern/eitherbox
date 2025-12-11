@@ -191,32 +191,36 @@ export const YieldTab = ({ walletConnected, onConnect }: YieldTabProps) => {
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Pending Fees */}
       {walletConnected ? (
-        <div className="bubble p-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold">Pending Fees</h2>
-            <span className="text-3xl font-bold text-primary">$309.50</span>
+        <div className="flex gap-4">
+          {/* Claim All Button - Circle Card */}
+          <div className="bubble p-6 flex flex-col items-center justify-center min-w-[140px]">
+            <button className="w-16 h-16 rounded-full bg-primary hover:bg-primary/90 hover:scale-105 transition-all duration-300 text-primary-foreground shadow-lg shadow-primary/30 flex items-center justify-center mb-3">
+              <span className="text-2xl">💰</span>
+            </button>
+            <span className="text-xs text-muted-foreground mb-1">Claim All</span>
+            <span className="text-lg font-bold text-primary">$309.50</span>
           </div>
           
-          <div className="space-y-3 mb-6">
-            <div className="flex justify-between items-center py-4 px-5 rounded-full bg-muted/20 border border-bubble-border">
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-muted-foreground/60 font-mono">#48291</span>
-                <span className="text-sm text-muted-foreground">UNI (from ETH-USDC)</span>
+          {/* Pending Fees List */}
+          <div className="bubble p-6 flex-1">
+            <h2 className="text-lg font-bold mb-4">Pending Fees</h2>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center py-3 px-4 rounded-full bg-muted/20 border border-bubble-border">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-muted-foreground/60 font-mono">#48291</span>
+                  <span className="text-sm text-muted-foreground">UNI (from ETH-USDC)</span>
+                </div>
+                <span className="font-semibold">24.50</span>
               </div>
-              <span className="font-semibold">24.50</span>
-            </div>
-            <div className="flex justify-between items-center py-4 px-5 rounded-full bg-muted/20 border border-bubble-border">
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-muted-foreground/60 font-mono">#48156</span>
-                <span className="text-sm text-muted-foreground">UNI (from BTC-ETH)</span>
+              <div className="flex justify-between items-center py-3 px-4 rounded-full bg-muted/20 border border-bubble-border">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-muted-foreground/60 font-mono">#48156</span>
+                  <span className="text-sm text-muted-foreground">UNI (from BTC-ETH)</span>
+                </div>
+                <span className="font-semibold">12.80</span>
               </div>
-              <span className="font-semibold">12.80</span>
             </div>
           </div>
-
-          <button className="w-full py-4 rounded-full font-bold bg-primary hover:bg-primary/90 transition-all duration-300 text-primary-foreground shadow-lg shadow-primary/30">
-            Claim All Fees
-          </button>
         </div>
       ) : (
         <div className="bubble p-10 text-center">
