@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, ArrowLeft } from 'lucide-react';
+import { Plus, ArrowLeft, ArrowLeftRight } from 'lucide-react';
 
 const tokens = ['UNI', 'WBTC', 'WETH', 'USDC', 'USDT'];
 
@@ -31,6 +31,18 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
   const [poolSubTab, setPoolSubTab] = useState('available');
   const [selectedPool, setSelectedPool] = useState<Pool | null>(null);
   const [selectedYieldToken, setSelectedYieldToken] = useState('UNI');
+  const [isTokenOrderReversed, setIsTokenOrderReversed] = useState(false);
+  const [selectedRange, setSelectedRange] = useState<string | null>(null);
+
+  const getTokenPair = () => {
+    if (!selectedPool) return { tokenA: '', tokenB: '' };
+    const [first, second] = selectedPool.name.split('-');
+    return isTokenOrderReversed 
+      ? { tokenA: second, tokenB: first }
+      : { tokenA: first, tokenB: second };
+  };
+
+  const { tokenA, tokenB } = getTokenPair();
 
   if (selectedPool) {
     return (
@@ -112,8 +124,35 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
 
           {/* Price Range */}
           <div className="bubble-sm p-6 mb-6">
-            <label className="text-sm font-semibold block mb-2">Set Price Range</label>
-            <p className="text-xs text-muted-foreground mb-5">Select the price range where your liquidity will be active</p>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-semibold">Set Price Range</label>
+              <button
+                onClick={() => setIsTokenOrderReversed(!isTokenOrderReversed)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/30 border border-bubble-border hover:border-primary/30 hover:bg-bubble-hover transition-all duration-300 text-xs"
+              >
+                <ArrowLeftRight size={14} />
+                <span>{tokenA}/{tokenB}</span>
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground mb-4">Select the price range where your liquidity will be active</p>
+            
+            {/* Range Quick Buttons */}
+            <div className="flex gap-2 mb-5">
+              {['3/3', '25/25', '50/50', '80/20', '100/100'].map(range => (
+                <button
+                  key={range}
+                  onClick={() => setSelectedRange(range)}
+                  disabled={!walletConnected}
+                  className={`flex-1 py-2 px-2 rounded-full text-xs font-semibold transition-all duration-300 ${
+                    selectedRange === range
+                      ? 'bg-primary/20 border-2 border-primary/50 text-primary'
+                      : 'bg-muted/30 border border-bubble-border text-muted-foreground hover:border-primary/30 hover:bg-bubble-hover'
+                  } ${!walletConnected && 'opacity-50 cursor-not-allowed'}`}
+                >
+                  ±{range.split('/')[0]}%
+                </button>
+              ))}
+            </div>
             
             <div className="grid grid-cols-2 gap-4 mb-5">
               <div>
@@ -124,7 +163,7 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                   className="w-full bg-muted/30 px-5 py-3.5 rounded-full outline-none border border-bubble-border focus:border-primary/50 transition-all duration-300 text-sm"
                   disabled={!walletConnected}
                 />
-                <p className="text-xs text-muted-foreground mt-2 ml-2">{selectedPool.name.split('-')[0]} per {selectedPool.name.split('-')[1]}</p>
+                <p className="text-xs text-muted-foreground mt-2 ml-2">{tokenA} per {tokenB}</p>
               </div>
               <div>
                 <label className="text-xs text-muted-foreground block mb-2">Max Price</label>
@@ -134,14 +173,14 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                   className="w-full bg-muted/30 px-5 py-3.5 rounded-full outline-none border border-bubble-border focus:border-primary/50 transition-all duration-300 text-sm"
                   disabled={!walletConnected}
                 />
-                <p className="text-xs text-muted-foreground mt-2 ml-2">{selectedPool.name.split('-')[0]} per {selectedPool.name.split('-')[1]}</p>
+                <p className="text-xs text-muted-foreground mt-2 ml-2">{tokenA} per {tokenB}</p>
               </div>
             </div>
 
             <div className="bg-primary/10 backdrop-blur-sm rounded-full p-4 border border-primary/20">
               <div className="flex justify-between items-center text-sm">
                 <span className="text-muted-foreground">Current Price</span>
-                <span className="font-bold text-primary">1.0002</span>
+                <span className="font-bold text-primary">1.0002 {tokenA}/{tokenB}</span>
               </div>
             </div>
           </div>
@@ -189,7 +228,7 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
           {/* Token Inputs */}
           <div className="grid md:grid-cols-2 gap-4 mb-8">
             <div className="bubble-sm p-5">
-              <label className="text-sm text-muted-foreground block mb-3">Token A</label>
+              <label className="text-sm text-muted-foreground block mb-3">{tokenA}</label>
               <div className="flex gap-3">
                 <input
                   type="number"
@@ -198,14 +237,14 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                   disabled={!walletConnected}
                 />
                 <div className="bg-bubble-hover px-5 py-3 rounded-full font-semibold border border-bubble-border flex items-center">
-                  {selectedPool.name.split('-')[0]}
+                  {tokenA}
                 </div>
               </div>
               <p className="text-xs text-muted-foreground mt-3 ml-2">Balance: 1,245.50</p>
             </div>
             
             <div className="bubble-sm p-5">
-              <label className="text-sm text-muted-foreground block mb-3">Token B</label>
+              <label className="text-sm text-muted-foreground block mb-3">{tokenB}</label>
               <div className="flex gap-3">
                 <input
                   type="number"
@@ -214,7 +253,7 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                   disabled={!walletConnected}
                 />
                 <div className="bg-bubble-hover px-5 py-3 rounded-full font-semibold border border-bubble-border flex items-center">
-                  {selectedPool.name.split('-')[1]}
+                  {tokenB}
                 </div>
               </div>
               <p className="text-xs text-muted-foreground mt-3 ml-2">Balance: 89.23</p>
