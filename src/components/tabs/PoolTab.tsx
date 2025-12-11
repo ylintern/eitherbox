@@ -11,8 +11,8 @@ const pools = [
 ];
 
 const positions = [
-  { pool: 'ETH-USDC', liquidity: '1,240.50', share: '0.12%', value: '$2,481' },
-  { pool: 'BTC-ETH', liquidity: '0.234', share: '0.03%', value: '$4,820' }
+  { pool: 'ETH-USDC', positionId: '#48291', liquidity: '1,240.50', share: '0.12%', value: '$2,481' },
+  { pool: 'BTC-ETH', positionId: '#48156', liquidity: '0.234', share: '0.03%', value: '$4,820' }
 ];
 
 interface Pool {
@@ -615,7 +615,10 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
             {positions.map((pos, i) => (
               <div key={i} className="bubble-sm p-6 hover:border-primary/30 transition-all duration-300">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-bold">{pos.pool}</h3>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-muted-foreground/60 font-mono">{pos.positionId}</span>
+                    <h3 className="text-lg font-bold">{pos.pool}</h3>
+                  </div>
                   <span className="text-xl font-bold text-primary">{pos.value}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-4 text-sm mb-5">
