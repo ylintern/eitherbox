@@ -332,10 +332,25 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                 {/* Bars - full width, 200 bars */}
                 <div className="flex items-end h-full gap-px px-0 py-2" style={{ backgroundColor: 'black' }}>
                   {Array.from({ length: 200 }, (_, i) => {
-                    // Generate bell curve distribution
-                    const center = 100;
-                    const spread = 40;
-                    const height = Math.max(5, 100 * Math.exp(-Math.pow(i - center, 2) / (2 * spread * spread)) + Math.random() * 15);
+                    // TVL-based distribution: max 500M, average 1M, spikes 20-50M
+                    const maxTVL = 500_000_000;
+                    const seed = Math.sin(i * 12.9898) * 43758.5453;
+                    const random = seed - Math.floor(seed);
+                    
+                    // Determine bar type: empty (15%), low/average (60%), spike (25%)
+                    let tvl: number;
+                    if (random < 0.15) {
+                      // Empty/very low
+                      tvl = random * 100_000;
+                    } else if (random < 0.75) {
+                      // Average around 1M with variation
+                      tvl = 500_000 + (Math.sin(i * 0.5) * 0.5 + 0.5) * 1_500_000;
+                    } else {
+                      // Spikes between 20M-50M
+                      tvl = 20_000_000 + (Math.sin(i * 2.1) * 0.5 + 0.5) * 30_000_000;
+                    }
+                    
+                    const height = Math.max(0.5, (tvl / maxTVL) * 100);
                     
                     const chartMin = currentPrice * 0.5;
                     const chartMax = currentPrice * 1.5;
