@@ -37,6 +37,13 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
   const [tvlZoom, setTvlZoom] = useState(500); // Max TVL in millions
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
+  const [liquidityAmount, setLiquidityAmount] = useState(50); // Slider value 0-100
+  const [tokenAAmount, setTokenAAmount] = useState<string>('');
+  const [tokenBAmount, setTokenBAmount] = useState<string>('');
+  
+  // Mock balances
+  const tokenABalance = 1245.50;
+  const tokenBBalance = 89.23;
   
   const basePrice = selectedPool?.price ?? 1;
   const currentPrice = isTokenOrderReversed ? 1 / basePrice : basePrice;
@@ -427,6 +434,53 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
             </div>
           </div>
           
+          {/* Liquidity Amount Slider */}
+          <div className="bubble-sm p-6 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <label className="text-sm font-semibold">Deposit Amount</label>
+              <span className="text-sm text-primary font-bold">{liquidityAmount}%</span>
+            </div>
+            
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={liquidityAmount}
+              onChange={(e) => {
+                const value = parseInt(e.target.value);
+                setLiquidityAmount(value);
+                
+                // Calculate token amounts based on slider and range
+                const minVal = parseFloat(minPrice) || currentPrice * 0.97;
+                const maxVal = parseFloat(maxPrice) || currentPrice * 1.03;
+                const rangeCenter = (minVal + maxVal) / 2;
+                const priceRatio = currentPrice / rangeCenter;
+                
+                // Distribute based on price position in range
+                const tokenARatio = Math.max(0.1, Math.min(0.9, 0.5 + (priceRatio - 1) * 2));
+                const tokenBRatio = 1 - tokenARatio;
+                
+                const maxTokenA = tokenABalance * (value / 100);
+                const maxTokenB = tokenBBalance * (value / 100);
+                
+                setTokenAAmount((maxTokenA * tokenARatio).toFixed(4));
+                setTokenBAmount((maxTokenB * tokenBRatio).toFixed(4));
+              }}
+              disabled={!walletConnected}
+              className="w-full h-2 bg-muted/30 rounded-full appearance-none cursor-pointer accent-primary disabled:opacity-50 disabled:cursor-not-allowed
+                [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:shadow-primary/30 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-110
+                [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-lg [&::-moz-range-thumb]:shadow-primary/30 [&::-moz-range-thumb]:cursor-pointer"
+            />
+            
+            <div className="flex justify-between text-[10px] text-muted-foreground mt-2">
+              <span>0%</span>
+              <span>25%</span>
+              <span>50%</span>
+              <span>75%</span>
+              <span>100%</span>
+            </div>
+          </div>
+
           {/* Token Inputs */}
           <div className="grid md:grid-cols-2 gap-4 mb-8">
             <div className="bubble-sm p-5">
@@ -435,6 +489,8 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                 <input
                   type="number"
                   placeholder="0.0"
+                  value={tokenAAmount}
+                  onChange={(e) => setTokenAAmount(e.target.value)}
                   className="flex-1 bg-muted/30 px-5 py-3.5 rounded-full outline-none border border-bubble-border focus:border-primary/50 transition-all duration-300"
                   disabled={!walletConnected}
                 />
@@ -442,7 +498,7 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                   {tokenA}
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-3 ml-2">Balance: 1,245.50</p>
+              <p className="text-xs text-muted-foreground mt-3 ml-2">Balance: {tokenABalance.toLocaleString()}</p>
             </div>
             
             <div className="bubble-sm p-5">
@@ -451,6 +507,8 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                 <input
                   type="number"
                   placeholder="0.0"
+                  value={tokenBAmount}
+                  onChange={(e) => setTokenBAmount(e.target.value)}
                   className="flex-1 bg-muted/30 px-5 py-3.5 rounded-full outline-none border border-bubble-border focus:border-primary/50 transition-all duration-300"
                   disabled={!walletConnected}
                 />
@@ -458,7 +516,7 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                   {tokenB}
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-3 ml-2">Balance: 89.23</p>
+              <p className="text-xs text-muted-foreground mt-3 ml-2">Balance: {tokenBBalance.toLocaleString()}</p>
             </div>
           </div>
 
