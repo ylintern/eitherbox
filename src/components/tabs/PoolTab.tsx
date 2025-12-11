@@ -32,7 +32,8 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
   const [selectedPool, setSelectedPool] = useState<Pool | null>(null);
   const [selectedYieldToken, setSelectedYieldToken] = useState('UNI');
   const [isTokenOrderReversed, setIsTokenOrderReversed] = useState(false);
-  const [selectedRange, setSelectedRange] = useState<string | null>(null);
+  const [selectedRange, setSelectedRange] = useState<string | null>('50/50');
+  const [timeRange, setTimeRange] = useState('7D');
 
   const getTokenPair = () => {
     if (!selectedPool) return { tokenA: '', tokenB: '' };
@@ -187,25 +188,81 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
 
           {/* Liquidity Distribution */}
           <div className="bubble-sm p-6 mb-6">
-            <label className="text-sm font-semibold block mb-4">Liquidity Distribution</label>
-            <div className="relative h-48 bg-muted/20 rounded-[24px] p-4 overflow-hidden">
-              <div className="absolute bottom-4 left-4 right-4 h-px bg-border" />
-              
-              <div className="flex items-end justify-center h-full gap-1.5 pb-2">
-                {[20, 35, 50, 70, 85, 95, 100, 95, 85, 70, 50, 35, 20].map((height, i) => (
-                  <div
-                    key={i}
-                    className={`flex-1 rounded-full transition-all ${
-                      i >= 5 && i <= 7 
-                        ? 'bg-primary/60' 
-                        : 'bg-secondary/20'
+            <div className="flex items-center justify-between mb-4">
+              <label className="text-sm font-semibold">Liquidity Distribution</label>
+              <div className="flex gap-1 p-1 rounded-full bg-muted/30 border border-bubble-border">
+                {['1D', '7D', '30D', '1Y'].map(range => (
+                  <button
+                    key={range}
+                    onClick={() => setTimeRange(range)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 ${
+                      timeRange === range
+                        ? 'bg-foreground/10 text-foreground'
+                        : 'text-muted-foreground hover:text-foreground'
                     }`}
-                    style={{ height: `${height}%` }}
-                  />
+                  >
+                    {range}
+                  </button>
                 ))}
               </div>
+            </div>
+            
+            <div className="relative h-48 bg-muted/20 rounded-[24px] p-4 overflow-hidden">
+              {/* Active range gradient overlay */}
+              <div 
+                className="absolute top-4 bottom-4 bg-gradient-to-r from-transparent via-foreground/5 to-transparent pointer-events-none"
+                style={{ left: '30%', right: '30%' }}
+              />
               
-              <div className="absolute left-1/2 bottom-4 w-0.5 h-[calc(100%-32px)] bg-primary/50 -translate-x-1/2">
+              {/* Left range boundary */}
+              <div 
+                className="absolute top-4 bottom-4 w-px bg-foreground/60"
+                style={{ left: '30%' }}
+              >
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground rounded-full" />
+                <div className="absolute top-2 left-2 text-[10px] text-foreground/80 whitespace-nowrap font-medium">
+                  Min
+                </div>
+              </div>
+              
+              {/* Right range boundary */}
+              <div 
+                className="absolute top-4 bottom-4 w-px bg-foreground/60"
+                style={{ right: '30%' }}
+              >
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground rounded-full" />
+                <div className="absolute top-2 -left-6 text-[10px] text-foreground/80 whitespace-nowrap font-medium">
+                  Max
+                </div>
+              </div>
+              
+              <div className="absolute bottom-4 left-4 right-4 h-px bg-border" />
+              
+              {/* Bars - more compact */}
+              <div className="flex items-end justify-center h-full gap-0.5 pb-2 px-2">
+                {[15, 22, 30, 40, 52, 65, 78, 88, 95, 100, 98, 92, 85, 75, 62, 50, 38, 28, 20, 14, 10].map((height, i) => {
+                  const totalBars = 21;
+                  const rangeStart = Math.floor(totalBars * 0.3);
+                  const rangeEnd = Math.floor(totalBars * 0.7);
+                  const isInRange = i >= rangeStart && i <= rangeEnd;
+                  const isCenter = i === Math.floor(totalBars / 2);
+                  
+                  return (
+                    <div
+                      key={i}
+                      className={`flex-1 rounded-t-sm transition-all duration-300 ${
+                        isInRange 
+                          ? 'bg-primary/70' 
+                          : 'bg-secondary/25'
+                      }`}
+                      style={{ height: `${height}%`, maxWidth: '12px' }}
+                    />
+                  );
+                })}
+              </div>
+              
+              {/* Current price marker */}
+              <div className="absolute left-1/2 bottom-4 w-0.5 h-[calc(100%-32px)] bg-primary -translate-x-1/2">
                 <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-primary rounded-full shadow-lg shadow-primary/50" />
                 <div className="absolute -top-7 left-1/2 -translate-x-1/2 text-xs text-primary whitespace-nowrap font-medium">
                   Current
@@ -213,14 +270,18 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
               </div>
             </div>
             
-            <div className="flex items-center justify-center gap-8 mt-5 text-xs">
+            <div className="flex items-center justify-center gap-6 mt-5 text-xs">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-secondary/20 rounded-full" />
+                <div className="w-3 h-3 bg-secondary/25 rounded-sm" />
                 <span className="text-muted-foreground">Total Liquidity</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-primary/60 rounded-full" />
+                <div className="w-3 h-3 bg-primary/70 rounded-sm" />
                 <span className="text-muted-foreground">Your Range</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-0.5 bg-foreground/60" />
+                <span className="text-muted-foreground">Boundaries</span>
               </div>
             </div>
           </div>
