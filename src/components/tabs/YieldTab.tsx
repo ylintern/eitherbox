@@ -195,12 +195,12 @@ export const YieldTab = ({ walletConnected, onConnect }: YieldTabProps) => {
           
           <div className="space-y-3 mb-6">
             <div className="flex justify-between items-center py-4 px-5 rounded-full bg-muted/20 border border-bubble-border">
-              <span className="text-sm text-muted-foreground">USDC</span>
-              <span className="font-semibold">124.50</span>
+              <span className="text-sm text-muted-foreground">UNI (from ETH-USDC)</span>
+              <span className="font-semibold">24.50</span>
             </div>
             <div className="flex justify-between items-center py-4 px-5 rounded-full bg-muted/20 border border-bubble-border">
-              <span className="text-sm text-muted-foreground">ETH</span>
-              <span className="font-semibold">0.05</span>
+              <span className="text-sm text-muted-foreground">UNI (from BTC-ETH)</span>
+              <span className="font-semibold">12.80</span>
             </div>
           </div>
 
@@ -253,7 +253,7 @@ export const YieldTab = ({ walletConnected, onConnect }: YieldTabProps) => {
               currentPrice="0.0548"
               minPrice="0.0520"
               maxPrice="0.0540"
-              yieldToken="WBTC"
+              yieldToken="UNI"
               poolShare="0.03%"
               liquidity="0.234"
               pending="$12.80"
