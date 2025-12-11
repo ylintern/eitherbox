@@ -34,6 +34,19 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
   const [isTokenOrderReversed, setIsTokenOrderReversed] = useState(false);
   const [selectedRange, setSelectedRange] = useState<string | null>('50/50');
   const [timeRange, setTimeRange] = useState('7D');
+  const [minPrice, setMinPrice] = useState<string>('');
+  const [maxPrice, setMaxPrice] = useState<string>('');
+  
+  const currentPrice = 1.0002; // Mock current market price
+
+  const handleRangeSelect = (range: string) => {
+    setSelectedRange(range);
+    const percentage = parseInt(range.split('/')[0]) / 100;
+    const min = (currentPrice * (1 - percentage)).toFixed(4);
+    const max = (currentPrice * (1 + percentage)).toFixed(4);
+    setMinPrice(min);
+    setMaxPrice(max);
+  };
 
   const getTokenPair = () => {
     if (!selectedPool) return { tokenA: '', tokenB: '' };
@@ -142,7 +155,7 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
               {['3/3', '25/25', '50/50', '80/20', '100/100'].map(range => (
                 <button
                   key={range}
-                  onClick={() => setSelectedRange(range)}
+                  onClick={() => handleRangeSelect(range)}
                   disabled={!walletConnected}
                   className={`flex-1 py-2 px-2 rounded-full text-xs font-semibold transition-all duration-300 ${
                     selectedRange === range
@@ -161,6 +174,8 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                 <input
                   type="number"
                   placeholder="0.0"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
                   className="w-full bg-muted/30 px-5 py-3.5 rounded-full outline-none border border-bubble-border focus:border-primary/50 transition-all duration-300 text-sm"
                   disabled={!walletConnected}
                 />
@@ -171,6 +186,8 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                 <input
                   type="number"
                   placeholder="0.0"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
                   className="w-full bg-muted/30 px-5 py-3.5 rounded-full outline-none border border-bubble-border focus:border-primary/50 transition-all duration-300 text-sm"
                   disabled={!walletConnected}
                 />
@@ -181,7 +198,7 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
             <div className="bg-primary/10 backdrop-blur-sm rounded-full p-4 border border-primary/20">
               <div className="flex justify-between items-center text-sm">
                 <span className="text-muted-foreground">Current Price</span>
-                <span className="font-bold text-primary">1.0002 {tokenA}/{tokenB}</span>
+                <span className="font-bold text-primary">{currentPrice} {tokenA}/{tokenB}</span>
               </div>
             </div>
           </div>
