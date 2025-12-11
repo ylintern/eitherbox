@@ -4,10 +4,10 @@ import { Plus, ArrowLeft, ArrowLeftRight } from 'lucide-react';
 const tokens = ['UNI', 'WBTC', 'WETH', 'USDC', 'USDT'];
 
 const pools = [
-  { name: 'USDC-USDT', tvl: '$2.4M', fee: '0.01%', apr: '12.4%' },
-  { name: 'BTC-ETH', tvl: '$8.1M', fee: '0.3%', apr: '24.8%' },
-  { name: 'ETH-USDC', tvl: '$5.2M', fee: '0.05%', apr: '18.2%' },
-  { name: 'BTC-USDC', tvl: '$3.7M', fee: '0.3%', apr: '21.5%' }
+  { name: 'USDC-USDT', tvl: '$2.4M', fee: '0.01%', apr: '12.4%', price: 1.0002 },
+  { name: 'BTC-ETH', tvl: '$8.1M', fee: '0.3%', apr: '24.8%', price: 28.27 },
+  { name: 'ETH-USDC', tvl: '$5.2M', fee: '0.05%', apr: '18.2%', price: 3200 },
+  { name: 'BTC-USDC', tvl: '$3.7M', fee: '0.3%', apr: '21.5%', price: 90000 }
 ];
 
 const positions = [
@@ -20,6 +20,7 @@ interface Pool {
   tvl: string;
   fee: string;
   apr: string;
+  price: number;
 }
 
 interface PoolTabProps {
@@ -37,13 +38,14 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
   
-  const currentPrice = 1.0002; // Mock current market price
+  const currentPrice = selectedPool?.price ?? 1;
 
   const handleRangeSelect = (range: string) => {
     setSelectedRange(range);
     const percentage = parseInt(range.split('/')[0]) / 100;
-    const min = (currentPrice * (1 - percentage)).toFixed(4);
-    const max = (currentPrice * (1 + percentage)).toFixed(4);
+    const decimals = currentPrice >= 1000 ? 2 : currentPrice >= 1 ? 4 : 6;
+    const min = (currentPrice * (1 - percentage)).toFixed(decimals);
+    const max = (currentPrice * (1 + percentage)).toFixed(decimals);
     setMinPrice(min);
     setMaxPrice(max);
   };
