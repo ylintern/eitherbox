@@ -1,4 +1,4 @@
-import logoImage from '@/assets/logo-concept-5.png';
+import logoImage from '@/assets/logo-transparent.png';
 
 interface LogoProps {
   size?: number;
