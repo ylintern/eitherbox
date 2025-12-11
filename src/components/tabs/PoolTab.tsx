@@ -42,15 +42,17 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
   const currentPrice = isTokenOrderReversed ? 1 / basePrice : basePrice;
 
   const formatPrice = (price: number) => {
+    if (!price || !isFinite(price)) return '0';
+    if (price >= 10000) return price.toFixed(0);
     if (price >= 1000) return price.toFixed(2);
     if (price >= 1) return price.toFixed(4);
-    if (price >= 0.0001) return price.toFixed(6);
+    if (price >= 0.001) return price.toFixed(6);
     return price.toFixed(8);
   };
 
   const handleRangeSelect = (range: string) => {
     setSelectedRange(range);
-    const percentage = parseInt(range.split('/')[0]) / 100;
+    const percentage = parseFloat(range.split('/')[0]) / 100;
     const min = currentPrice * (1 - percentage);
     const max = currentPrice * (1 + percentage);
     setMinPrice(formatPrice(min));
@@ -172,12 +174,11 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                 <button
                   key={range}
                   onClick={() => handleRangeSelect(range)}
-                  disabled={!walletConnected}
                   className={`flex-1 py-2 px-2 rounded-full text-xs font-semibold transition-all duration-300 ${
                     selectedRange === range
                       ? 'bg-primary/20 border-2 border-primary/50 text-primary'
                       : 'bg-muted/30 border border-bubble-border text-muted-foreground hover:border-primary/30 hover:bg-bubble-hover'
-                  } ${!walletConnected && 'opacity-50 cursor-not-allowed'}`}
+                  }`}
                 >
                   ±{range.split('/')[0]}%
                 </button>
