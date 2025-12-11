@@ -29,7 +29,10 @@ const PositionCard = ({
       <CollapsibleTrigger className="w-full p-6 flex justify-between items-center cursor-pointer hover:bg-muted/10 transition-all duration-300">
         <div className="flex items-center gap-4">
           <div className="text-left">
-            <h3 className="text-xl font-bold">{pool}</h3>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-muted-foreground/60 font-mono">{positionId}</span>
+              <h3 className="text-xl font-bold">{pool}</h3>
+            </div>
             <div className="flex items-center gap-2 mt-1">
               <span className={`text-xs px-3 py-1 rounded-full border ${
                 inRange 
