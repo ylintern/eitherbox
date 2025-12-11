@@ -4,6 +4,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 
 interface PositionCardProps {
   pool: string;
+  positionId: string;
   value: string;
   inRange: boolean;
   fee: string;
@@ -17,7 +18,7 @@ interface PositionCardProps {
 }
 
 const PositionCard = ({ 
-  pool, value, inRange, fee, currentPrice, minPrice, maxPrice, 
+  pool, positionId, value, inRange, fee, currentPrice, minPrice, maxPrice, 
   yieldToken, poolShare, liquidity, pending 
 }: PositionCardProps) => {
   const [closePercentage, setClosePercentage] = useState(0);
@@ -195,11 +196,17 @@ export const YieldTab = ({ walletConnected, onConnect }: YieldTabProps) => {
           
           <div className="space-y-3 mb-6">
             <div className="flex justify-between items-center py-4 px-5 rounded-full bg-muted/20 border border-bubble-border">
-              <span className="text-sm text-muted-foreground">UNI (from ETH-USDC)</span>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-muted-foreground/60 font-mono">#48291</span>
+                <span className="text-sm text-muted-foreground">UNI (from ETH-USDC)</span>
+              </div>
               <span className="font-semibold">24.50</span>
             </div>
             <div className="flex justify-between items-center py-4 px-5 rounded-full bg-muted/20 border border-bubble-border">
-              <span className="text-sm text-muted-foreground">UNI (from BTC-ETH)</span>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-muted-foreground/60 font-mono">#48156</span>
+                <span className="text-sm text-muted-foreground">UNI (from BTC-ETH)</span>
+              </div>
               <span className="font-semibold">12.80</span>
             </div>
           </div>
@@ -234,6 +241,7 @@ export const YieldTab = ({ walletConnected, onConnect }: YieldTabProps) => {
           <div className="space-y-6">
             <PositionCard
               pool="ETH-USDC"
+              positionId="#48291"
               value="$2,481"
               inRange={true}
               fee="0.05%"
@@ -247,6 +255,7 @@ export const YieldTab = ({ walletConnected, onConnect }: YieldTabProps) => {
             />
             <PositionCard
               pool="BTC-ETH"
+              positionId="#48156"
               value="$4,820"
               inRange={false}
               fee="0.3%"
