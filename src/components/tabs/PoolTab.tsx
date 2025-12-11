@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, ArrowLeft, ArrowLeftRight } from 'lucide-react';
+import { Plus, ArrowLeft, ArrowLeftRight, Calendar, ZoomIn, ZoomOut } from 'lucide-react';
 
 const tokens = ['UNI', 'WBTC', 'WETH', 'USDC', 'USDT'];
 
@@ -35,6 +35,7 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
   const [isTokenOrderReversed, setIsTokenOrderReversed] = useState(false);
   const [selectedRange, setSelectedRange] = useState<string | null>('50/50');
   const [timeRange, setTimeRange] = useState('7D');
+  const [tvlZoom, setTvlZoom] = useState(500); // Max TVL in millions
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
   
@@ -224,27 +225,61 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
           <div className="bubble-sm p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
               <label className="text-sm font-semibold">Liquidity Distribution</label>
-              <div className="flex gap-1 p-1 rounded-full bg-muted/30 border border-bubble-border">
-                {['1D', '7D', '30D', '1Y'].map(range => (
+              <div className="flex items-center gap-3">
+                {/* Time range with calendar icon */}
+                <div className="flex items-center gap-2">
+                  <Calendar size={14} className="text-muted-foreground" />
+                  <div className="flex gap-1 p-1 rounded-full bg-muted/30 border border-bubble-border">
+                    {['1D', '7D', '30D', '1Y'].map(range => (
+                      <button
+                        key={range}
+                        onClick={() => setTimeRange(range)}
+                        className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 ${
+                          timeRange === range
+                            ? 'bg-foreground/10 text-foreground'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        {range}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* TVL Zoom controls */}
+                <div className="flex items-center gap-1 p-1 rounded-full bg-muted/30 border border-bubble-border">
                   <button
-                    key={range}
-                    onClick={() => setTimeRange(range)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 ${
-                      timeRange === range
-                        ? 'bg-foreground/10 text-foreground'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
+                    onClick={() => setTvlZoom(prev => Math.min(1000, prev * 2))}
+                    className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-foreground/10 transition-all"
+                    title="Zoom out (show more TVL)"
                   >
-                    {range}
+                    <ZoomOut size={14} />
                   </button>
-                ))}
+                  <span className="text-[10px] text-muted-foreground px-1 min-w-[40px] text-center">{tvlZoom}M</span>
+                  <button
+                    onClick={() => setTvlZoom(prev => Math.max(10, prev / 2))}
+                    className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-foreground/10 transition-all"
+                    title="Zoom in (show less TVL)"
+                  >
+                    <ZoomIn size={14} />
+                  </button>
+                </div>
               </div>
             </div>
             
             {/* Chart container with price scale */}
-            <div className="relative">
-              {/* Main chart area - smaller and centered */}
-              <div className="mx-8 relative h-32 bg-muted/20 rounded-[16px] overflow-hidden">
+            <div className="relative flex">
+              {/* TVL Scale - Left side */}
+              <div className="flex flex-col justify-between items-end pr-2 py-2 text-[9px] text-muted-foreground w-12">
+                <span>{tvlZoom}M</span>
+                <span>{Math.round(tvlZoom * 0.75)}M</span>
+                <span>{Math.round(tvlZoom * 0.5)}M</span>
+                <span>{Math.round(tvlZoom * 0.25)}M</span>
+                <span>0</span>
+              </div>
+              
+              {/* Main chart area */}
+              <div className="flex-1 relative h-32 bg-muted/20 rounded-[16px] overflow-hidden">
                 {/* Active range gradient overlay */}
                 {(() => {
                   const chartMin = currentPrice * 0.5;
@@ -332,8 +367,8 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                 {/* Bars - full width, 200 bars */}
                 <div className="flex items-end h-full gap-px px-0 py-2" style={{ backgroundColor: 'black' }}>
                   {Array.from({ length: 200 }, (_, i) => {
-                    // TVL-based distribution: max 500M, average 1M, spikes 20-50M
-                    const maxTVL = 500_000_000;
+                    // TVL-based distribution using dynamic zoom level
+                    const maxTVL = tvlZoom * 1_000_000;
                     const seed = Math.sin(i * 12.9898) * 43758.5453;
                     const random = seed - Math.floor(seed);
                     
@@ -350,7 +385,7 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                       tvl = 20_000_000 + (Math.sin(i * 2.1) * 0.5 + 0.5) * 30_000_000;
                     }
                     
-                    const height = Math.max(0.5, (tvl / maxTVL) * 100);
+                    const height = Math.min(100, Math.max(0.5, (tvl / maxTVL) * 100));
                     
                     const chartMin = currentPrice * 0.5;
                     const chartMax = currentPrice * 1.5;
@@ -379,30 +414,31 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                 </div>
               </div>
               
-              {/* Price scale axis */}
-              <div className="mx-8 flex justify-between items-center mt-2 text-[10px] text-muted-foreground">
-                <span>{formatPrice(currentPrice * 0.5)}</span>
-                <span>{formatPrice(currentPrice * 0.75)}</span>
-                <div className="flex flex-col items-center">
-                  <span className="text-primary font-semibold">{formatPrice(currentPrice)}</span>
-                  <span className="text-[8px]">Current</span>
-                </div>
-                <span>{formatPrice(currentPrice * 1.25)}</span>
-                <span>{formatPrice(currentPrice * 1.5)}</span>
+            </div>
+            
+            {/* Price scale axis */}
+            <div className="ml-12 flex justify-between items-center mt-2 text-[10px] text-muted-foreground">
+              <span>{formatPrice(currentPrice * 0.5)}</span>
+              <span>{formatPrice(currentPrice * 0.75)}</span>
+              <div className="flex flex-col items-center">
+                <span className="text-primary font-semibold">{formatPrice(currentPrice)}</span>
+                <span className="text-[8px]">Current</span>
               </div>
-              
-              {/* Range values display */}
-              <div className="flex justify-between items-center mt-3 px-2">
-                <div className="flex items-center gap-2 text-xs">
-                  <div className="w-2 h-2 bg-foreground rounded-full" />
-                  <span className="text-muted-foreground">Min:</span>
-                  <span className="font-semibold">{minPrice || formatPrice(currentPrice * 0.97)}</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="text-muted-foreground">Max:</span>
-                  <span className="font-semibold">{maxPrice || formatPrice(currentPrice * 1.03)}</span>
-                  <div className="w-2 h-2 bg-foreground rounded-full" />
-                </div>
+              <span>{formatPrice(currentPrice * 1.25)}</span>
+              <span>{formatPrice(currentPrice * 1.5)}</span>
+            </div>
+            
+            {/* Range values display */}
+            <div className="flex justify-between items-center mt-3 px-2 ml-12">
+              <div className="flex items-center gap-2 text-xs">
+                <div className="w-2 h-2 bg-foreground rounded-full" />
+                <span className="text-muted-foreground">Min:</span>
+                <span className="font-semibold">{minPrice || formatPrice(currentPrice * 0.97)}</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-muted-foreground">Max:</span>
+                <span className="font-semibold">{maxPrice || formatPrice(currentPrice * 1.03)}</span>
+                <div className="w-2 h-2 bg-foreground rounded-full" />
               </div>
             </div>
             
