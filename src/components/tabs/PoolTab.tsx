@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, ArrowLeft, ArrowLeftRight, Calendar, ZoomIn, ZoomOut } from 'lucide-react';
+import { Plus, ArrowLeft, ArrowLeftRight, ZoomIn, ZoomOut } from 'lucide-react';
 
 const tokens = ['UNI', 'WBTC', 'WETH', 'USDC', 'USDT'];
 
@@ -34,7 +34,6 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
   const [selectedYieldToken, setSelectedYieldToken] = useState('UNI');
   const [isTokenOrderReversed, setIsTokenOrderReversed] = useState(false);
   const [selectedRange, setSelectedRange] = useState<string | null>('50/50');
-  const [timeRange, setTimeRange] = useState('7D');
   const [tvlZoom, setTvlZoom] = useState(500); // Max TVL in millions
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
@@ -42,58 +41,10 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
   const basePrice = selectedPool?.price ?? 1;
   const currentPrice = isTokenOrderReversed ? 1 / basePrice : basePrice;
 
-  // Time range affects price range spread (volatility window)
-  const getTimeRangeMultiplier = () => {
-    switch (timeRange) {
-      case '1D': return 0.1;  // ±10% range
-      case '7D': return 0.25; // ±25% range
-      case '30D': return 0.5; // ±50% range
-      case '1Y': return 1.0;  // ±100% range
-      default: return 0.5;
-    }
-  };
-  
-  const priceRangeMultiplier = getTimeRangeMultiplier();
-  const chartMin = currentPrice * (1 - priceRangeMultiplier);
-  const chartMax = currentPrice * (1 + priceRangeMultiplier);
+  // Fixed price range spread (±50%)
+  const chartMin = currentPrice * 0.5;
+  const chartMax = currentPrice * 1.5;
   const chartRange = chartMax - chartMin;
-
-  // Generate date labels based on time range
-  const getDateLabels = () => {
-    const now = new Date();
-    const labels: string[] = [];
-    switch (timeRange) {
-      case '1D':
-        for (let i = 0; i <= 4; i++) {
-          const hour = new Date(now.getTime() - (24 - i * 6) * 60 * 60 * 1000);
-          labels.push(hour.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
-        }
-        break;
-      case '7D':
-        for (let i = 0; i <= 4; i++) {
-          const day = new Date(now.getTime() - (7 - i * 1.75) * 24 * 60 * 60 * 1000);
-          labels.push(day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-        }
-        break;
-      case '30D':
-        for (let i = 0; i <= 4; i++) {
-          const day = new Date(now.getTime() - (30 - i * 7.5) * 24 * 60 * 60 * 1000);
-          labels.push(day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-        }
-        break;
-      case '1Y':
-        for (let i = 0; i <= 4; i++) {
-          const month = new Date(now.getTime() - (365 - i * 91) * 24 * 60 * 60 * 1000);
-          labels.push(month.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }));
-        }
-        break;
-      default:
-        labels.push('', '', '', '', '');
-    }
-    return labels;
-  };
-  
-  const dateLabels = getDateLabels();
 
   const formatPrice = (price: number) => {
     if (!price || !isFinite(price)) return '0';
@@ -278,45 +229,22 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
           <div className="bubble-sm p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
               <label className="text-sm font-semibold">Liquidity Distribution</label>
-              <div className="flex items-center gap-3">
-                {/* Time range with calendar icon */}
-                <div className="flex items-center gap-2">
-                  <Calendar size={14} className="text-muted-foreground" />
-                  <div className="flex gap-1 p-1 rounded-full bg-muted/30 border border-bubble-border">
-                    {['1D', '7D', '30D', '1Y'].map(range => (
-                      <button
-                        key={range}
-                        onClick={() => setTimeRange(range)}
-                        className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 ${
-                          timeRange === range
-                            ? 'bg-foreground/10 text-foreground'
-                            : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                      >
-                        {range}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* TVL Zoom controls */}
-                <div className="flex items-center gap-1 p-1 rounded-full bg-muted/30 border border-bubble-border">
-                  <button
-                    onClick={() => setTvlZoom(prev => Math.min(1000, prev * 2))}
-                    className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-foreground/10 transition-all"
-                    title="Zoom out (show more TVL)"
-                  >
-                    <ZoomOut size={14} />
-                  </button>
-                  <span className="text-[10px] text-muted-foreground px-1 min-w-[40px] text-center">{tvlZoom}M</span>
-                  <button
-                    onClick={() => setTvlZoom(prev => Math.max(10, prev / 2))}
-                    className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-foreground/10 transition-all"
-                    title="Zoom in (show less TVL)"
-                  >
-                    <ZoomIn size={14} />
-                  </button>
-                </div>
+              <div className="flex items-center gap-1 p-1 rounded-full bg-muted/30 border border-bubble-border">
+                <button
+                  onClick={() => setTvlZoom(prev => Math.min(1000, prev * 2))}
+                  className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-foreground/10 transition-all"
+                  title="Zoom out (show more TVL)"
+                >
+                  <ZoomOut size={14} />
+                </button>
+                <span className="text-[10px] text-muted-foreground px-1 min-w-[40px] text-center">{tvlZoom}M</span>
+                <button
+                  onClick={() => setTvlZoom(prev => Math.max(10, prev / 2))}
+                  className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-foreground/10 transition-all"
+                  title="Zoom in (show less TVL)"
+                >
+                  <ZoomIn size={14} />
+                </button>
               </div>
             </div>
             
@@ -332,15 +260,7 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
               </div>
               
               {/* Main chart area */}
-              <div className="flex-1 flex flex-col">
-                {/* Date scale on top */}
-                <div className="flex justify-between items-center text-[9px] text-muted-foreground px-1 pb-1 transition-all duration-500">
-                  {dateLabels.map((label, i) => (
-                    <span key={`${timeRange}-${i}`} className="animate-fade-in">{label}</span>
-                  ))}
-                </div>
-                
-                <div className="flex-1 relative bg-muted/20 rounded-[16px] overflow-hidden transition-all duration-500">
+              <div className="flex-1 relative h-32 bg-muted/20 rounded-[16px] overflow-hidden transition-all duration-500">
                 {(() => {
                   const minVal = parseFloat(minPrice) || currentPrice * 0.97;
                   const maxVal = parseFloat(maxPrice) || currentPrice * 1.03;
@@ -467,8 +387,6 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                   <div className="absolute top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-primary rounded-full shadow-lg shadow-primary/50" />
                 </div>
               </div>
-            </div>
-              
             </div>
             
             {/* Price scale axis */}
