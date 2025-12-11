@@ -23,12 +23,10 @@ export const Footer = () => {
           <div className="grid md:grid-cols-4 gap-8">
             {/* Logo & Description */}
             <div className="md:col-span-2">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 rounded-full bg-bubble-hover border border-bubble-border">
-                  <Logo size={32} />
-                </div>
-                <span className="text-xs text-muted-foreground">by Yield Lounge</span>
-              </div>
+            <div className="flex items-center gap-2 mb-4">
+              <Logo size={48} />
+              <span className="text-xs text-muted-foreground">by Yield Lounge</span>
+            </div>
               <p className="text-sm text-muted-foreground max-w-md">
                 Automated yield conversion protocol built on Uniswap v4. Convert your LP fees into your preferred yield tokens seamlessly.
               </p>
