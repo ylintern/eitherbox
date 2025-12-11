@@ -18,7 +18,7 @@ export const Logo = ({ size = 48, className = "", glow = true }: LogoProps) => {
       />
       {glow && (
         <div 
-          className="absolute inset-0 blur-lg opacity-50 animate-logo-pulse"
+          className="absolute inset-0 blur-lg opacity-30 animate-logo-pulse"
           style={{
             background: 'linear-gradient(135deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3, #54a0ff)',
             borderRadius: '50%',
@@ -42,7 +42,7 @@ export const LogoIcon = ({ size = 32, className = "", glow = true }: { size?: nu
       />
       {glow && (
         <div 
-          className="absolute inset-0 blur-md opacity-40 animate-logo-pulse"
+          className="absolute inset-0 blur-md opacity-25 animate-logo-pulse"
           style={{
             background: 'linear-gradient(135deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3, #54a0ff)',
             borderRadius: '50%',
