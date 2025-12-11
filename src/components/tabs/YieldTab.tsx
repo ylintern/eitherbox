@@ -2,12 +2,6 @@ import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
-const yieldHistory = [
-  { fromToken: 'USDC', toToken: 'UNI', usdAmount: '$1,245', tokenAmount: '124.5', date: '2h ago' },
-  { fromToken: 'ETH', toToken: 'WBTC', usdAmount: '$2,340', tokenAmount: '0.045', date: '1d ago' },
-  { fromToken: 'USDT', toToken: 'UNI', usdAmount: '$892', tokenAmount: '89.2', date: '3d ago' }
-];
-
 interface PositionCardProps {
   pool: string;
   value: string;
@@ -267,36 +261,6 @@ export const YieldTab = ({ walletConnected, onConnect }: YieldTabProps) => {
           </div>
         </div>
       )}
-
-      {/* Conversion History */}
-      <div className="bubble p-8">
-        <h2 className="text-2xl font-bold mb-2">Conversion History</h2>
-        <p className="text-muted-foreground text-sm mb-8">Your automated fee conversions from USD to yield tokens</p>
-        <div className="space-y-4">
-          {yieldHistory.map((item, i) => (
-            <div key={i} className="bubble-sm p-5 hover:border-primary/30 transition-all duration-300">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="px-3 py-1 rounded-full bg-muted/50 text-muted-foreground text-xs">{item.fromToken}</span>
-                    <span className="text-muted-foreground/50">→</span>
-                    <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-bold">{item.toToken}</span>
-                  </div>
-                  <p className="text-2xl font-bold text-primary">{item.usdAmount}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-lg font-semibold">{item.tokenAmount} {item.toToken}</p>
-                  <p className="text-xs text-muted-foreground">{item.date}</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between pt-4 border-t border-bubble-border">
-                <span className="text-xs text-muted-foreground">Converted automatically</span>
-                <span className="text-xs text-primary px-3 py-1 rounded-full bg-primary/10">✓ Completed</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 };
