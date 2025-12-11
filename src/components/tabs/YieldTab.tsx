@@ -200,7 +200,7 @@ export const YieldTab = ({ walletConnected, onConnect }: YieldTabProps) => {
         <div className="flex gap-4">
           {/* Claim All Button - Circle Card */}
           <div className="bubble p-6 flex flex-col items-center justify-center min-w-[140px]">
-            <button className="px-5 py-3 rounded-full bg-primary hover:bg-primary/90 hover:scale-105 transition-all duration-300 text-primary-foreground shadow-lg shadow-primary/30 text-sm font-semibold mb-3">
+            <button className="px-5 py-3 rounded-full bg-primary/20 border border-primary/40 text-primary text-sm font-semibold hover:bg-primary/30 hover:scale-105 transition-all duration-300 mb-3 shadow-[0_0_15px_rgba(168,85,247,0.25)]">
               Claim All
             </button>
             <span className="text-lg font-bold text-primary">$309.50</span>
