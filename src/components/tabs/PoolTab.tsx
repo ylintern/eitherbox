@@ -329,23 +329,28 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                   );
                 })()}
                 
-                {/* Bars - full width */}
-                <div className="flex items-end h-full gap-px px-1 py-2">
-                  {[12, 18, 25, 35, 45, 58, 72, 85, 95, 100, 98, 92, 82, 70, 55, 42, 32, 22, 16, 11].map((height, i) => {
+                {/* Bars - full width, 200 bars */}
+                <div className="flex items-end h-full gap-0 px-0 py-2">
+                  {Array.from({ length: 200 }, (_, i) => {
+                    // Generate bell curve distribution
+                    const center = 100;
+                    const spread = 40;
+                    const height = Math.max(5, 100 * Math.exp(-Math.pow(i - center, 2) / (2 * spread * spread)) + Math.random() * 15);
+                    
                     const chartMin = currentPrice * 0.5;
                     const chartMax = currentPrice * 1.5;
                     const chartRange = chartMax - chartMin;
                     const minVal = parseFloat(minPrice) || currentPrice * 0.97;
                     const maxVal = parseFloat(maxPrice) || currentPrice * 1.03;
-                    const totalBars = 20;
+                    const totalBars = 200;
                     const barPrice = chartMin + ((i + 0.5) / totalBars) * chartRange;
                     const isInRange = barPrice >= minVal && barPrice <= maxVal;
                     
                     return (
                       <div
                         key={i}
-                        className={`flex-1 rounded-t-sm transition-all duration-300 ${
-                          isInRange ? 'bg-primary/70' : 'bg-secondary/30'
+                        className={`flex-1 transition-all duration-150 ${
+                          isInRange ? 'bg-primary/70' : 'bg-secondary/40'
                         }`}
                         style={{ height: `${height}%` }}
                       />
