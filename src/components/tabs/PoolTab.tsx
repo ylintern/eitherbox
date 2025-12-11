@@ -241,81 +241,159 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
               </div>
             </div>
             
-            <div className="relative h-48 bg-muted/20 rounded-[24px] p-4 overflow-hidden">
-              {/* Active range gradient overlay */}
-              <div 
-                className="absolute top-4 bottom-4 bg-gradient-to-r from-transparent via-foreground/5 to-transparent pointer-events-none"
-                style={{ left: '30%', right: '30%' }}
-              />
-              
-              {/* Left range boundary */}
-              <div 
-                className="absolute top-4 bottom-4 w-px bg-foreground/60"
-                style={{ left: '30%' }}
-              >
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground rounded-full" />
-                <div className="absolute top-2 left-2 text-[10px] text-foreground/80 whitespace-nowrap font-medium">
-                  Min
-                </div>
-              </div>
-              
-              {/* Right range boundary */}
-              <div 
-                className="absolute top-4 bottom-4 w-px bg-foreground/60"
-                style={{ right: '30%' }}
-              >
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground rounded-full" />
-                <div className="absolute top-2 -left-6 text-[10px] text-foreground/80 whitespace-nowrap font-medium">
-                  Max
-                </div>
-              </div>
-              
-              <div className="absolute bottom-4 left-4 right-4 h-px bg-border" />
-              
-              {/* Bars - more compact */}
-              <div className="flex items-end justify-center h-full gap-0.5 pb-2 px-2">
-                {[15, 22, 30, 40, 52, 65, 78, 88, 95, 100, 98, 92, 85, 75, 62, 50, 38, 28, 20, 14, 10].map((height, i) => {
-                  const totalBars = 21;
-                  const rangeStart = Math.floor(totalBars * 0.3);
-                  const rangeEnd = Math.floor(totalBars * 0.7);
-                  const isInRange = i >= rangeStart && i <= rangeEnd;
-                  const isCenter = i === Math.floor(totalBars / 2);
+            {/* Chart container with price scale */}
+            <div className="relative">
+              {/* Main chart area - smaller and centered */}
+              <div className="mx-8 relative h-32 bg-muted/20 rounded-[16px] overflow-hidden">
+                {/* Active range gradient overlay */}
+                {(() => {
+                  const chartMin = currentPrice * 0.5;
+                  const chartMax = currentPrice * 1.5;
+                  const chartRange = chartMax - chartMin;
+                  const minVal = parseFloat(minPrice) || currentPrice * 0.97;
+                  const maxVal = parseFloat(maxPrice) || currentPrice * 1.03;
+                  const leftPos = ((minVal - chartMin) / chartRange) * 100;
+                  const rightPos = 100 - ((maxVal - chartMin) / chartRange) * 100;
                   
                   return (
-                    <div
-                      key={i}
-                      className={`flex-1 rounded-t-sm transition-all duration-300 ${
-                        isInRange 
-                          ? 'bg-primary/70' 
-                          : 'bg-secondary/25'
-                      }`}
-                      style={{ height: `${height}%`, maxWidth: '12px' }}
-                    />
+                    <>
+                      <div 
+                        className="absolute top-0 bottom-0 bg-gradient-to-r from-primary/10 via-primary/20 to-primary/10 pointer-events-none"
+                        style={{ left: `${Math.max(0, leftPos)}%`, right: `${Math.max(0, rightPos)}%` }}
+                      />
+                      
+                      {/* Min boundary - draggable */}
+                      <div 
+                        className="absolute top-0 bottom-0 w-1 bg-foreground/80 cursor-ew-resize hover:bg-foreground transition-colors z-10 group"
+                        style={{ left: `${Math.max(2, Math.min(98, leftPos))}%` }}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          const startX = e.clientX;
+                          const startLeft = leftPos;
+                          const rect = e.currentTarget.parentElement?.getBoundingClientRect();
+                          
+                          const handleMouseMove = (moveEvent: MouseEvent) => {
+                            if (!rect) return;
+                            const deltaX = moveEvent.clientX - startX;
+                            const deltaPercent = (deltaX / rect.width) * 100;
+                            const newLeft = Math.max(2, Math.min(48, startLeft + deltaPercent));
+                            const newMinPrice = chartMin + (newLeft / 100) * chartRange;
+                            setMinPrice(formatPrice(newMinPrice));
+                            setSelectedRange(null);
+                          };
+                          
+                          const handleMouseUp = () => {
+                            document.removeEventListener('mousemove', handleMouseMove);
+                            document.removeEventListener('mouseup', handleMouseUp);
+                          };
+                          
+                          document.addEventListener('mousemove', handleMouseMove);
+                          document.addEventListener('mouseup', handleMouseUp);
+                        }}
+                      >
+                        <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-foreground rounded-full shadow-lg group-hover:scale-110 transition-transform" />
+                      </div>
+                      
+                      {/* Max boundary - draggable */}
+                      <div 
+                        className="absolute top-0 bottom-0 w-1 bg-foreground/80 cursor-ew-resize hover:bg-foreground transition-colors z-10 group"
+                        style={{ left: `${Math.max(2, Math.min(98, 100 - rightPos))}%` }}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          const startX = e.clientX;
+                          const startRight = rightPos;
+                          const rect = e.currentTarget.parentElement?.getBoundingClientRect();
+                          
+                          const handleMouseMove = (moveEvent: MouseEvent) => {
+                            if (!rect) return;
+                            const deltaX = moveEvent.clientX - startX;
+                            const deltaPercent = (deltaX / rect.width) * 100;
+                            const newRight = Math.max(2, Math.min(48, startRight - deltaPercent));
+                            const newMaxPrice = chartMax - (newRight / 100) * chartRange;
+                            setMaxPrice(formatPrice(newMaxPrice));
+                            setSelectedRange(null);
+                          };
+                          
+                          const handleMouseUp = () => {
+                            document.removeEventListener('mousemove', handleMouseMove);
+                            document.removeEventListener('mouseup', handleMouseUp);
+                          };
+                          
+                          document.addEventListener('mousemove', handleMouseMove);
+                          document.addEventListener('mouseup', handleMouseUp);
+                        }}
+                      >
+                        <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-foreground rounded-full shadow-lg group-hover:scale-110 transition-transform" />
+                      </div>
+                    </>
                   );
-                })}
+                })()}
+                
+                {/* Bars - compact */}
+                <div className="flex items-end justify-center h-full gap-px px-4 py-3">
+                  {[12, 18, 25, 35, 45, 58, 72, 85, 95, 100, 98, 92, 82, 70, 55, 42, 32, 22, 16, 11].map((height, i) => {
+                    const chartMin = currentPrice * 0.5;
+                    const chartMax = currentPrice * 1.5;
+                    const chartRange = chartMax - chartMin;
+                    const minVal = parseFloat(minPrice) || currentPrice * 0.97;
+                    const maxVal = parseFloat(maxPrice) || currentPrice * 1.03;
+                    const totalBars = 20;
+                    const barPrice = chartMin + (i / (totalBars - 1)) * chartRange;
+                    const isInRange = barPrice >= minVal && barPrice <= maxVal;
+                    
+                    return (
+                      <div
+                        key={i}
+                        className={`flex-1 rounded-t-sm transition-all duration-300 ${
+                          isInRange ? 'bg-primary/70' : 'bg-secondary/30'
+                        }`}
+                        style={{ height: `${height}%`, maxWidth: '10px' }}
+                      />
+                    );
+                  })}
+                </div>
+                
+                {/* Current price marker */}
+                <div className="absolute left-1/2 bottom-0 w-0.5 h-full bg-primary -translate-x-1/2">
+                  <div className="absolute top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-primary rounded-full shadow-lg shadow-primary/50" />
+                </div>
               </div>
               
-              {/* Current price marker */}
-              <div className="absolute left-1/2 bottom-4 w-0.5 h-[calc(100%-32px)] bg-primary -translate-x-1/2">
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-primary rounded-full shadow-lg shadow-primary/50" />
-                <div className="absolute -top-7 left-1/2 -translate-x-1/2 text-xs text-primary whitespace-nowrap font-medium">
-                  Current
+              {/* Price scale axis */}
+              <div className="mx-8 flex justify-between items-center mt-2 text-[10px] text-muted-foreground">
+                <span>{formatPrice(currentPrice * 0.5)}</span>
+                <span>{formatPrice(currentPrice * 0.75)}</span>
+                <div className="flex flex-col items-center">
+                  <span className="text-primary font-semibold">{formatPrice(currentPrice)}</span>
+                  <span className="text-[8px]">Current</span>
+                </div>
+                <span>{formatPrice(currentPrice * 1.25)}</span>
+                <span>{formatPrice(currentPrice * 1.5)}</span>
+              </div>
+              
+              {/* Range values display */}
+              <div className="flex justify-between items-center mt-3 px-2">
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="w-2 h-2 bg-foreground rounded-full" />
+                  <span className="text-muted-foreground">Min:</span>
+                  <span className="font-semibold">{minPrice || formatPrice(currentPrice * 0.97)}</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-muted-foreground">Max:</span>
+                  <span className="font-semibold">{maxPrice || formatPrice(currentPrice * 1.03)}</span>
+                  <div className="w-2 h-2 bg-foreground rounded-full" />
                 </div>
               </div>
             </div>
             
-            <div className="flex items-center justify-center gap-6 mt-5 text-xs">
+            <div className="flex items-center justify-center gap-6 mt-4 text-xs">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-secondary/25 rounded-sm" />
+                <div className="w-3 h-3 bg-secondary/30 rounded-sm" />
                 <span className="text-muted-foreground">Total Liquidity</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-primary/70 rounded-sm" />
                 <span className="text-muted-foreground">Your Range</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-0.5 bg-foreground/60" />
-                <span className="text-muted-foreground">Boundaries</span>
               </div>
             </div>
           </div>
