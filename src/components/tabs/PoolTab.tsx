@@ -329,8 +329,8 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                   );
                 })()}
                 
-                {/* Bars - compact */}
-                <div className="flex items-end justify-center h-full gap-px px-4 py-3">
+                {/* Bars - full width */}
+                <div className="flex items-end h-full gap-px px-1 py-2">
                   {[12, 18, 25, 35, 45, 58, 72, 85, 95, 100, 98, 92, 82, 70, 55, 42, 32, 22, 16, 11].map((height, i) => {
                     const chartMin = currentPrice * 0.5;
                     const chartMax = currentPrice * 1.5;
@@ -338,7 +338,7 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                     const minVal = parseFloat(minPrice) || currentPrice * 0.97;
                     const maxVal = parseFloat(maxPrice) || currentPrice * 1.03;
                     const totalBars = 20;
-                    const barPrice = chartMin + (i / (totalBars - 1)) * chartRange;
+                    const barPrice = chartMin + ((i + 0.5) / totalBars) * chartRange;
                     const isInRange = barPrice >= minVal && barPrice <= maxVal;
                     
                     return (
@@ -347,7 +347,7 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                         className={`flex-1 rounded-t-sm transition-all duration-300 ${
                           isInRange ? 'bg-primary/70' : 'bg-secondary/30'
                         }`}
-                        style={{ height: `${height}%`, maxWidth: '10px' }}
+                        style={{ height: `${height}%` }}
                       />
                     );
                   })}
