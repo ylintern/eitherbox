@@ -334,13 +334,13 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
               {/* Main chart area */}
               <div className="flex-1 flex flex-col">
                 {/* Date scale on top */}
-                <div className="flex justify-between items-center text-[9px] text-muted-foreground px-1 pb-1">
+                <div className="flex justify-between items-center text-[9px] text-muted-foreground px-1 pb-1 transition-all duration-500">
                   {dateLabels.map((label, i) => (
-                    <span key={i}>{label}</span>
+                    <span key={`${timeRange}-${i}`} className="animate-fade-in">{label}</span>
                   ))}
                 </div>
                 
-                <div className="flex-1 relative bg-muted/20 rounded-[16px] overflow-hidden">
+                <div className="flex-1 relative bg-muted/20 rounded-[16px] overflow-hidden transition-all duration-500">
                 {(() => {
                   const minVal = parseFloat(minPrice) || currentPrice * 0.97;
                   const maxVal = parseFloat(maxPrice) || currentPrice * 1.03;
@@ -350,13 +350,13 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                   return (
                     <>
                       <div 
-                        className="absolute top-0 bottom-0 bg-gradient-to-r from-primary/10 via-primary/20 to-primary/10 pointer-events-none"
+                        className="absolute top-0 bottom-0 bg-gradient-to-r from-primary/10 via-primary/20 to-primary/10 pointer-events-none transition-all duration-500 ease-out"
                         style={{ left: `${Math.max(0, leftPos)}%`, right: `${Math.max(0, rightPos)}%` }}
                       />
                       
                       {/* Min boundary - draggable */}
                       <div 
-                        className="absolute top-0 bottom-0 w-1 bg-foreground/80 cursor-ew-resize hover:bg-foreground transition-colors z-10 group"
+                        className="absolute top-0 bottom-0 w-1 bg-foreground/80 cursor-ew-resize hover:bg-foreground transition-all duration-300 ease-out z-10 group"
                         style={{ left: `${Math.max(2, Math.min(98, leftPos))}%` }}
                         onMouseDown={(e) => {
                           e.preventDefault();
@@ -422,7 +422,7 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                 })()}
                 
                 {/* Bars - full width, 200 bars */}
-                <div className="flex items-end h-full gap-px px-0 py-2" style={{ backgroundColor: 'black' }}>
+                <div className="flex items-end h-full gap-px px-0 py-2 transition-all duration-500 ease-out" style={{ backgroundColor: 'black' }}>
                   {Array.from({ length: 200 }, (_, i) => {
                     // TVL-based distribution using dynamic zoom level
                     const maxTVL = tvlZoom * 1_000_000;
@@ -450,10 +450,13 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                     return (
                       <div
                         key={i}
-                        className={`flex-1 transition-all duration-150 ${
+                        className={`flex-1 transition-all duration-500 ease-out ${
                           isInRange ? 'bg-primary/70' : 'bg-secondary/40'
                         }`}
-                        style={{ height: `${height}%` }}
+                        style={{ 
+                          height: `${height}%`,
+                          transitionDelay: `${i * 2}ms`
+                        }}
                       />
                     );
                   })}
@@ -469,15 +472,15 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
             </div>
             
             {/* Price scale axis */}
-            <div className="ml-12 flex justify-between items-center mt-2 text-[10px] text-muted-foreground">
-              <span>{formatPrice(chartMin)}</span>
-              <span>{formatPrice(chartMin + chartRange * 0.25)}</span>
-              <div className="flex flex-col items-center">
+            <div className="ml-12 flex justify-between items-center mt-2 text-[10px] text-muted-foreground transition-all duration-500">
+              <span className="transition-all duration-500">{formatPrice(chartMin)}</span>
+              <span className="transition-all duration-500">{formatPrice(chartMin + chartRange * 0.25)}</span>
+              <div className="flex flex-col items-center transition-all duration-500">
                 <span className="text-primary font-semibold">{formatPrice(currentPrice)}</span>
                 <span className="text-[8px]">Current</span>
               </div>
-              <span>{formatPrice(chartMin + chartRange * 0.75)}</span>
-              <span>{formatPrice(chartMax)}</span>
+              <span className="transition-all duration-500">{formatPrice(chartMin + chartRange * 0.75)}</span>
+              <span className="transition-all duration-500">{formatPrice(chartMax)}</span>
             </div>
             
             {/* Range values display */}
