@@ -1,4 +1,4 @@
-import logoImage from '@/assets/logo-optimized.webp';
+import logoImage from '@/assets/logo.png';
 
 interface LogoProps {
   size?: number;
@@ -8,7 +8,7 @@ interface LogoProps {
 
 export const Logo = ({ size = 48, className = "", glow = true }: LogoProps) => {
   return (
-    <div className={`relative ${glow ? 'animate-logo-glow' : ''}`}>
+    <div className={`relative ${glow ? 'animate-logo-glow' : ''}`} style={{ width: size, height: size }}>
       <img 
         src={logoImage} 
         alt="Either Box" 
@@ -32,7 +32,7 @@ export const Logo = ({ size = 48, className = "", glow = true }: LogoProps) => {
 // Icon version uses the same image
 export const LogoIcon = ({ size = 32, className = "", glow = true }: { size?: number; className?: string; glow?: boolean }) => {
   return (
-    <div className={`relative ${glow ? 'animate-logo-glow' : ''}`}>
+    <div className={`relative ${glow ? 'animate-logo-glow' : ''}`} style={{ width: size, height: size }}>
       <img 
         src={logoImage} 
         alt="Either Box" 
