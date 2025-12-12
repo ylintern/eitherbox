@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 interface PositionCardProps {
   pool: string;
@@ -189,10 +190,9 @@ const PositionCard = ({
 
 interface YieldTabProps {
   walletConnected: boolean;
-  onConnect: () => void;
 }
 
-export const YieldTab = ({ walletConnected, onConnect }: YieldTabProps) => {
+export const YieldTab = ({ walletConnected }: YieldTabProps) => {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Pending Fees */}
@@ -244,12 +244,7 @@ export const YieldTab = ({ walletConnected, onConnect }: YieldTabProps) => {
           </div>
           <h2 className="text-xl font-bold mb-3">Pending Fees</h2>
           <p className="text-muted-foreground mb-6">Connect wallet to view and claim pending fees</p>
-          <button
-            onClick={onConnect}
-            className="px-8 py-4 rounded-full bg-primary hover:bg-primary/90 transition-all duration-300 font-semibold text-primary-foreground shadow-lg shadow-primary/30"
-          >
-            Connect Wallet
-          </button>
+          <ConnectButton />
         </div>
       )}
 
