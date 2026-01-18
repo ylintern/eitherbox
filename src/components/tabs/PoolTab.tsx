@@ -35,6 +35,7 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
   const [isTokenOrderReversed, setIsTokenOrderReversed] = useState(false);
   const [selectedRange, setSelectedRange] = useState<string | null>('50/50');
   const [tvlZoom, setTvlZoom] = useState(500); // Max TVL in millions
+  const [priceZoom, setPriceZoom] = useState(50); // Price range percentage (±50%)
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
   const [liquidityAmount, setLiquidityAmount] = useState(50); // Slider value 0-100
@@ -48,9 +49,9 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
   const basePrice = selectedPool?.price ?? 1;
   const currentPrice = isTokenOrderReversed ? 1 / basePrice : basePrice;
 
-  // Fixed price range spread (±50%)
-  const chartMin = currentPrice * 0.5;
-  const chartMax = currentPrice * 1.5;
+  // Dynamic price range spread based on priceZoom
+  const chartMin = currentPrice * (1 - priceZoom / 100);
+  const chartMax = currentPrice * (1 + priceZoom / 100);
   const chartRange = chartMax - chartMin;
 
   const formatPrice = (price: number) => {
@@ -236,22 +237,43 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
           <div className="bubble-sm p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
               <label className="text-sm font-semibold">Liquidity Distribution</label>
-              <div className="flex items-center gap-1 p-1 rounded-full bg-muted/30 border border-bubble-border">
-                <button
-                  onClick={() => setTvlZoom(prev => Math.min(1000, prev * 2))}
-                  className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-foreground/10 transition-all"
-                  title="Zoom out (show more TVL)"
-                >
-                  <ZoomOut size={14} />
-                </button>
-                <span className="text-[10px] text-muted-foreground px-1 min-w-[40px] text-center">{tvlZoom}M</span>
-                <button
-                  onClick={() => setTvlZoom(prev => Math.max(10, prev / 2))}
-                  className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-foreground/10 transition-all"
-                  title="Zoom in (show less TVL)"
-                >
-                  <ZoomIn size={14} />
-                </button>
+              <div className="flex items-center gap-3">
+                {/* Price Zoom Controls */}
+                <div className="flex items-center gap-1 p-1 rounded-full bg-muted/30 border border-bubble-border">
+                  <button
+                    onClick={() => setPriceZoom(prev => Math.min(200, prev * 1.5))}
+                    className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-foreground/10 transition-all"
+                    title="Zoom out price range"
+                  >
+                    <ZoomOut size={14} />
+                  </button>
+                  <span className="text-[10px] text-muted-foreground px-1 min-w-[40px] text-center">±{Math.round(priceZoom)}%</span>
+                  <button
+                    onClick={() => setPriceZoom(prev => Math.max(5, prev / 1.5))}
+                    className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-foreground/10 transition-all"
+                    title="Zoom in price range"
+                  >
+                    <ZoomIn size={14} />
+                  </button>
+                </div>
+                {/* TVL Zoom Controls */}
+                <div className="flex items-center gap-1 p-1 rounded-full bg-muted/30 border border-bubble-border">
+                  <button
+                    onClick={() => setTvlZoom(prev => Math.min(1000, prev * 2))}
+                    className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-foreground/10 transition-all"
+                    title="Zoom out (show more TVL)"
+                  >
+                    <ZoomOut size={14} />
+                  </button>
+                  <span className="text-[10px] text-muted-foreground px-1 min-w-[40px] text-center">{tvlZoom}M</span>
+                  <button
+                    onClick={() => setTvlZoom(prev => Math.max(10, prev / 2))}
+                    className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-foreground/10 transition-all"
+                    title="Zoom in (show less TVL)"
+                  >
+                    <ZoomIn size={14} />
+                  </button>
+                </div>
               </div>
             </div>
             
