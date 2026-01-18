@@ -24,7 +24,7 @@ interface PositionCardProps {
   pending: string;
 }
 
-const YIELD_TOKEN_OPTIONS = ['UNI', 'AAVE', 'COMP', 'CRV'];
+const YIELD_TOKEN_OPTIONS = ['UNI', 'BTC', 'ETH', 'USDT'];
 
 const PositionCard = ({ 
   pool, positionId, value, inRange, fee, currentPrice, minPrice, maxPrice, 
