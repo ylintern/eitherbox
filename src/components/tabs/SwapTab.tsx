@@ -70,7 +70,6 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
                   value={fromChain}
                   onChange={(e) => setFromChain(e.target.value)}
                   className="w-full appearance-none bg-secondary/10 px-5 py-3 pr-12 rounded-full text-sm font-semibold cursor-pointer hover:bg-secondary/20 transition-all duration-300 border border-secondary/30 text-secondary"
-                  disabled={!walletConnected}
                 >
                   {chains.map(chain => (
                     <option key={chain} value={chain}>{chain}</option>
@@ -88,14 +87,12 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
               onChange={(e) => setSwapAmount(e.target.value)}
               placeholder="0.0"
               className="flex-1 bg-transparent text-3xl font-semibold outline-none min-w-0"
-              disabled={!walletConnected}
             />
             <div className="relative shrink-0">
               <select
                 value={fromToken}
                 onChange={(e) => setFromToken(e.target.value)}
                 className="appearance-none bg-bubble-hover px-5 py-3 pr-10 rounded-full font-semibold cursor-pointer hover:bg-muted transition-all duration-300 border border-bubble-border"
-                disabled={!walletConnected}
               >
                 {tokens.map(token => (
                   <option key={token} value={token}>{token}</option>
@@ -133,7 +130,6 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
                   value={toChain}
                   onChange={(e) => setToChain(e.target.value)}
                   className="w-full appearance-none bg-secondary/10 px-5 py-3 pr-12 rounded-full text-sm font-semibold cursor-pointer hover:bg-secondary/20 transition-all duration-300 border border-secondary/30 text-secondary"
-                  disabled={!walletConnected}
                 >
                   {chains.map(chain => (
                     <option key={chain} value={chain}>{chain}</option>
@@ -157,7 +153,6 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
                 value={toToken}
                 onChange={(e) => setToToken(e.target.value)}
                 className="appearance-none bg-bubble-hover px-5 py-3 pr-10 rounded-full font-semibold cursor-pointer hover:bg-muted transition-all duration-300 border border-bubble-border"
-                disabled={!walletConnected}
               >
                 {tokens.map(token => (
                   <option key={token} value={token}>{token}</option>
@@ -212,18 +207,16 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
         )}
 
         <button
-          disabled={!walletConnected || !swapAmount}
+          disabled={!swapAmount}
           className={`w-full py-4 rounded-full font-bold transition-all duration-300 ${
-            walletConnected && swapAmount
+            swapAmount
               ? isCrossChain
                 ? 'bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-lg shadow-secondary/30'
                 : 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/30'
               : 'bg-muted text-muted-foreground cursor-not-allowed border border-bubble-border'
           }`}
         >
-          {!walletConnected 
-            ? 'Connect Wallet to Swap' 
-            : !swapAmount 
+          {!swapAmount 
             ? 'Enter Amount' 
             : isCrossChain
             ? 'Bridge & Swap'

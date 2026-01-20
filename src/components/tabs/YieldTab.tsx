@@ -283,97 +283,84 @@ export const YieldTab = ({ walletConnected }: YieldTabProps) => {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Pending Fees */}
-      {walletConnected ? (
-        <div className="flex gap-4">
-          {/* Claim All Button - Circle Card */}
-          <div className="bubble p-6 flex flex-col items-center justify-center min-w-[140px]">
-            <button className="px-5 py-3 rounded-full bg-primary/20 border border-primary/40 text-primary text-sm font-semibold hover:bg-primary/30 hover:scale-105 transition-all duration-300 mb-3 shadow-[0_0_15px_rgba(168,85,247,0.25)]">
-              Claim All
-            </button>
-            <span className="text-lg font-bold text-primary">$309.50</span>
-          </div>
-          
-          {/* Pending Fees List */}
-          <div className="bubble p-6 flex-1">
-            <h2 className="text-lg font-bold mb-4">Pending Fees</h2>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center py-2 px-4 rounded-full bg-muted/20 border border-bubble-border">
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-muted-foreground/60 font-mono">#48291</span>
-                  <span className="text-sm text-muted-foreground">UNI (from ETH-USDC)</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="font-semibold">24.50</span>
-                  <button className="px-3 py-1.5 rounded-full bg-primary/20 border border-primary/30 text-primary text-xs font-medium hover:bg-primary/30 transition-all">
-                    Claim
-                  </button>
-                </div>
+      <div className="flex gap-4">
+        {/* Claim All Button - Circle Card */}
+        <div className="bubble p-6 flex flex-col items-center justify-center min-w-[140px]">
+          <button className="px-5 py-3 rounded-full bg-primary/20 border border-primary/40 text-primary text-sm font-semibold hover:bg-primary/30 hover:scale-105 transition-all duration-300 mb-3 shadow-[0_0_15px_rgba(168,85,247,0.25)]">
+            Claim All
+          </button>
+          <span className="text-lg font-bold text-primary">$309.50</span>
+        </div>
+        
+        {/* Pending Fees List */}
+        <div className="bubble p-6 flex-1">
+          <h2 className="text-lg font-bold mb-4">Pending Fees</h2>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center py-2 px-4 rounded-full bg-muted/20 border border-bubble-border">
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-muted-foreground/60 font-mono">#48291</span>
+                <span className="text-sm text-muted-foreground">UNI (from ETH-USDC)</span>
               </div>
-              <div className="flex justify-between items-center py-2 px-4 rounded-full bg-muted/20 border border-bubble-border">
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-muted-foreground/60 font-mono">#48156</span>
-                  <span className="text-sm text-muted-foreground">UNI (from BTC-ETH)</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="font-semibold">12.80</span>
-                  <button className="px-3 py-1.5 rounded-full bg-primary/20 border border-primary/30 text-primary text-xs font-medium hover:bg-primary/30 transition-all">
-                    Claim
-                  </button>
-                </div>
+              <div className="flex items-center gap-3">
+                <span className="font-semibold">24.50</span>
+                <button className="px-3 py-1.5 rounded-full bg-primary/20 border border-primary/30 text-primary text-xs font-medium hover:bg-primary/30 transition-all">
+                  Claim
+                </button>
+              </div>
+            </div>
+            <div className="flex justify-between items-center py-2 px-4 rounded-full bg-muted/20 border border-bubble-border">
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-muted-foreground/60 font-mono">#48156</span>
+                <span className="text-sm text-muted-foreground">UNI (from BTC-ETH)</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="font-semibold">12.80</span>
+                <button className="px-3 py-1.5 rounded-full bg-primary/20 border border-primary/30 text-primary text-xs font-medium hover:bg-primary/30 transition-all">
+                  Claim
+                </button>
               </div>
             </div>
           </div>
         </div>
-      ) : (
-        <div className="bubble p-10 text-center">
-          <div className="w-20 h-20 rounded-full bg-primary/10 border border-primary/30 mx-auto mb-6 flex items-center justify-center">
-            <span className="text-3xl">💰</span>
-          </div>
-          <h2 className="text-xl font-bold mb-3">Pending Fees</h2>
-          <p className="text-muted-foreground mb-6">Connect wallet to view and claim pending fees</p>
-          <ConnectButton />
-        </div>
-      )}
+      </div>
 
       {/* Active Pools */}
-      {walletConnected && (
-        <div>
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold mb-2">Active Pools</h2>
-            <p className="text-sm text-muted-foreground">Pools where you currently have open positions</p>
-          </div>
-          <div className="space-y-6">
-            <PositionCard
-              pool="ETH-USDC"
-              positionId="#48291"
-              value="$2,481"
-              inRange={true}
-              fee="0.05%"
-              currentPrice="1.0002"
-              minPrice="0.9980"
-              maxPrice="1.0020"
-              yieldToken="UNI"
-              poolShare="0.12%"
-              liquidity="1,240.50"
-              pending="$45.30"
-            />
-            <PositionCard
-              pool="BTC-ETH"
-              positionId="#48156"
-              value="$4,820"
-              inRange={false}
-              fee="0.3%"
-              currentPrice="0.0548"
-              minPrice="0.0520"
-              maxPrice="0.0540"
-              yieldToken="UNI"
-              poolShare="0.03%"
-              liquidity="0.234"
-              pending="$12.80"
-            />
-          </div>
+      <div>
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold mb-2">Active Pools</h2>
+          <p className="text-sm text-muted-foreground">Pools where you currently have open positions</p>
         </div>
-      )}
+        <div className="space-y-6">
+          <PositionCard
+            pool="ETH-USDC"
+            positionId="#48291"
+            value="$2,481"
+            inRange={true}
+            fee="0.05%"
+            currentPrice="1.0002"
+            minPrice="0.9980"
+            maxPrice="1.0020"
+            yieldToken="UNI"
+            poolShare="0.12%"
+            liquidity="1,240.50"
+            pending="$45.30"
+          />
+          <PositionCard
+            pool="BTC-ETH"
+            positionId="#48156"
+            value="$4,820"
+            inRange={false}
+            fee="0.3%"
+            currentPrice="0.0548"
+            minPrice="0.0520"
+            maxPrice="0.0540"
+            yieldToken="UNI"
+            poolShare="0.03%"
+            liquidity="0.234"
+            pending="$12.80"
+          />
+        </div>
+      </div>
     </div>
   );
 };
