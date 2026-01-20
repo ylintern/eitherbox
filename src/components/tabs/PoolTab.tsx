@@ -142,7 +142,7 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                     selectedYieldToken === token
                       ? 'bg-primary/15 border-primary'
                       : 'bg-muted/30 border-bubble-border hover:bg-bubble-hover hover:border-primary/30'
-                  } ${!walletConnected && 'opacity-50 cursor-not-allowed'}`}
+                  }`}
                 >
                   <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                     selectedYieldToken === token ? 'border-primary' : 'border-muted-foreground'
@@ -158,7 +158,6 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                     value={token}
                     checked={selectedYieldToken === token}
                     onChange={(e) => setSelectedYieldToken(e.target.value)}
-                    disabled={!walletConnected}
                     className="sr-only"
                   />
                 </label>
@@ -206,7 +205,6 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                   value={minPrice}
                   onChange={(e) => setMinPrice(e.target.value)}
                   className="w-full bg-muted/30 px-5 py-3.5 rounded-full outline-none border border-bubble-border focus:border-primary/50 transition-all duration-300 text-sm"
-                  disabled={!walletConnected}
                 />
                 <p className="text-xs text-muted-foreground mt-2 ml-2">{tokenA} per {tokenB}</p>
               </div>
@@ -218,7 +216,6 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(e.target.value)}
                   className="w-full bg-muted/30 px-5 py-3.5 rounded-full outline-none border border-bubble-border focus:border-primary/50 transition-all duration-300 text-sm"
-                  disabled={!walletConnected}
                 />
                 <p className="text-xs text-muted-foreground mt-2 ml-2">{tokenA} per {tokenB}</p>
               </div>
@@ -466,8 +463,7 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                 setTokenAAmount((maxTokenA * tokenARatio).toFixed(4));
                 setTokenBAmount((maxTokenB * tokenBRatio).toFixed(4));
               }}
-              disabled={!walletConnected}
-              className="w-full h-2 bg-muted/30 rounded-full appearance-none cursor-pointer accent-primary disabled:opacity-50 disabled:cursor-not-allowed
+              className="w-full h-2 bg-muted/30 rounded-full appearance-none cursor-pointer accent-primary
                 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:shadow-primary/30 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-110
                 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-lg [&::-moz-range-thumb]:shadow-primary/30 [&::-moz-range-thumb]:cursor-pointer"
             />
@@ -492,7 +488,6 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                   value={tokenAAmount}
                   onChange={(e) => setTokenAAmount(e.target.value)}
                   className="flex-1 bg-muted/30 px-5 py-3.5 rounded-full outline-none border border-bubble-border focus:border-primary/50 transition-all duration-300"
-                  disabled={!walletConnected}
                 />
                 <div className="bg-bubble-hover px-5 py-3 rounded-full font-semibold border border-bubble-border flex items-center">
                   {tokenA}
@@ -510,7 +505,6 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                   value={tokenBAmount}
                   onChange={(e) => setTokenBAmount(e.target.value)}
                   className="flex-1 bg-muted/30 px-5 py-3.5 rounded-full outline-none border border-bubble-border focus:border-primary/50 transition-all duration-300"
-                  disabled={!walletConnected}
                 />
                 <div className="bg-bubble-hover px-5 py-3 rounded-full font-semibold border border-bubble-border flex items-center">
                   {tokenB}
@@ -521,12 +515,7 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
           </div>
 
           <button
-            disabled={!walletConnected}
-            className={`w-full flex items-center justify-center gap-2 py-4 rounded-full font-bold transition-all duration-300 ${
-              walletConnected
-                ? 'bg-primary/20 border-2 border-primary/50 text-primary hover:bg-primary/30 shadow-lg shadow-primary/10'
-                : 'bg-muted text-muted-foreground cursor-not-allowed border border-bubble-border'
-            }`}
+            className="w-full flex items-center justify-center gap-2 py-4 rounded-full font-bold transition-all duration-300 bg-primary/20 border-2 border-primary/50 text-primary hover:bg-primary/30 shadow-lg shadow-primary/10"
           >
             <Plus size={20} />
             Add Liquidity
@@ -551,18 +540,16 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
           >
             Available Pools
           </button>
-          {walletConnected && (
-            <button 
-              onClick={() => setPoolSubTab('positions')}
-              className={`px-6 py-2.5 rounded-full font-semibold transition-all duration-300 ${
-                poolSubTab === 'positions'
-                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Positions
-            </button>
-          )}
+          <button 
+            onClick={() => setPoolSubTab('positions')}
+            className={`px-6 py-2.5 rounded-full font-semibold transition-all duration-300 ${
+              poolSubTab === 'positions'
+                ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Positions
+          </button>
         </div>
       </div>
 
@@ -607,7 +594,7 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
       )}
 
       {/* Positions */}
-      {poolSubTab === 'positions' && walletConnected && (
+      {poolSubTab === 'positions' && (
         <div className="bubble p-8">
           <h2 className="text-2xl font-bold mb-2">Your Positions</h2>
           <p className="text-muted-foreground text-sm mb-8">Manage your active liquidity positions</p>
