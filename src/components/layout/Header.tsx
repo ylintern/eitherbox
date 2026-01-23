@@ -8,7 +8,7 @@ export const Header = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Logo size={72} />
-            <span className="text-sm text-muted-foreground hidden sm:block font-medium">Either Box</span>
+            <span className="text-sm text-muted-foreground hidden sm:block font-medium">Yield Lounge</span>
           </div>
           
           <ConnectButton 
