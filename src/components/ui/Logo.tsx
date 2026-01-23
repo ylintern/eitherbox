@@ -1,4 +1,7 @@
-import logoImage from '@/assets/logo-optimized.webp';
+// Load logo from public folder at runtime. Place `logo.png` in `/public` and it will be
+// served at the root: `/logo.png`. Importing images bundles them; using the public
+// path avoids bundling and matches the project's expectations.
+// NOTE: make sure `public/logo.png` exists.
 
 interface LogoProps {
   size?: number;
@@ -9,8 +12,8 @@ interface LogoProps {
 export const Logo = ({ size = 48, className = "", glow = true }: LogoProps) => {
   return (
     <div className={`relative ${glow ? 'animate-logo-glow' : ''}`} style={{ width: size, height: size }}>
-      <img 
-        src={logoImage} 
+      <img
+        src={`/logo.png`}
         alt="Yield Lounge"
         width={size} 
         height={size}
@@ -33,8 +36,8 @@ export const Logo = ({ size = 48, className = "", glow = true }: LogoProps) => {
 export const LogoIcon = ({ size = 32, className = "", glow = true }: { size?: number; className?: string; glow?: boolean }) => {
   return (
     <div className={`relative ${glow ? 'animate-logo-glow' : ''}`} style={{ width: size, height: size }}>
-      <img 
-        src={logoImage} 
+      <img
+        src={`/logo.png`}
         alt="Yield Lounge" 
         width={size} 
         height={size}
