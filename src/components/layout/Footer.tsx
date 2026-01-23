@@ -25,7 +25,7 @@ export const Footer = () => {
             <div className="md:col-span-2">
             <div className="flex items-center gap-3 mb-4">
               <Logo size={64} />
-              <span className="text-sm text-muted-foreground">Either Box</span>
+              <span className="text-sm text-muted-foreground">Yield Lounge</span>
             </div>
               <p className="text-sm text-muted-foreground max-w-md">
                 Automated yield conversion protocol built on Uniswap v4. Convert your LP fees into your preferred yield tokens seamlessly.
@@ -70,7 +70,7 @@ export const Footer = () => {
 
           <div className="border-t border-bubble-border mt-10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-muted-foreground">
-              © 2024 Either Box. All rights reserved.
+              © 2024 Yield Lounge. All rights reserved.
             </p>
             <div className="flex items-center gap-2">
               {['Terms', 'Privacy', 'Cookies'].map(item => (
