@@ -176,33 +176,17 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
           </div>
         )}
 
-        {/* Swap Details */}
+        {/* Slippage Info */}
         {swapAmount && (
-          <div className={`backdrop-blur-sm rounded-[20px] p-5 mb-6 space-y-3 border ${
+          <div className={`backdrop-blur-sm rounded-[20px] p-4 mb-6 border ${
             isCrossChain 
               ? 'bg-secondary/10 border-secondary/20' 
               : 'bg-primary/10 border-primary/20'
           }`}>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Rate</span>
-              <span className="text-foreground/80">
-                1 {fromToken} = {isCrossChain ? '0.96' : '0.98'} {toToken}
-              </span>
-            </div>
-            <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Slippage</span>
               <span className="text-foreground/80">{slippage}%</span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Fee</span>
-              <span className="text-foreground/80">{isCrossChain ? '0.5%' : '0.3%'}</span>
-            </div>
-            {isCrossChain && fromChain !== toChain && (
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Bridge Fee</span>
-                <span className="text-foreground/80">~$2.50</span>
-              </div>
-            )}
           </div>
         )}
 
