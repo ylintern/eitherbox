@@ -2,8 +2,6 @@ import { Calendar, Send, Twitter, FileText } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 
 const socialLinks = [
-  { icon: Calendar, label: 'Book a Call', href: 'https://cal.com/yield-lounge/30min' },
-  { icon: Send, label: 'Telegram', href: 'https://t.me/+3sbFlFmj4Jg1ZWQ0' },
   { icon: Twitter, label: 'Twitter', href: 'https://x.com/yieldlounge' },
   { icon: FileText, label: 'Substack', href: 'https://substack.com/@yieldlounge' },
 ];

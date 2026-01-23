@@ -1,4 +1,4 @@
-import logoImage from '@/assets/logo.png';
+import logoImage from '@/assets/logo-optimized.webp';
 
 interface LogoProps {
   size?: number;
