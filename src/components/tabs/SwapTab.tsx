@@ -1,8 +1,14 @@
 import { useState } from 'react';
 import { Settings, ArrowUpDown, ChevronDown } from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 const tokens = ['UNI', 'WBTC', 'WETH', 'USDC', 'USDT'];
 const chains = ['Ethereum', 'Arbitrum', 'Optimism', 'Base', 'Polygon'];
+const slippagePresets = ['0.3', '0.5', '1'];
 
 interface SwapTabProps {
   walletConnected: boolean;
@@ -15,7 +21,9 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
   const [toToken, setToToken] = useState('UNI');
   const [fromChain, setFromChain] = useState('Ethereum');
   const [toChain, setToChain] = useState('Ethereum');
-  const [slippage] = useState('0.3');
+  const [slippage, setSlippage] = useState('0.3');
+  const [slippageMode, setSlippageMode] = useState<'auto' | 'manual'>('auto');
+  const [customSlippage, setCustomSlippage] = useState('');
 
   const isCrossChain = swapSubTab === 'crosschain';
 
@@ -25,9 +33,95 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl font-bold">Swap Tokens</h2>
-          <button className="w-12 h-12 rounded-full bg-bubble-hover border border-bubble-border flex items-center justify-center hover:border-primary/30 transition-all duration-300">
-            <Settings size={20} />
-          </button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="w-12 h-12 rounded-full bg-bubble-hover border border-bubble-border flex items-center justify-center hover:border-primary/30 transition-all duration-300">
+                <Settings size={20} />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-72 p-4 bubble" align="end">
+              <div className="space-y-4">
+                <h3 className="font-semibold text-sm">Slippage Settings</h3>
+                
+                {/* Auto/Manual Toggle */}
+                <div className="flex gap-2 p-1 rounded-full bg-muted/30 border border-bubble-border">
+                  <button
+                    onClick={() => {
+                      setSlippageMode('auto');
+                      setSlippage('0.3');
+                      setCustomSlippage('');
+                    }}
+                    className={`flex-1 py-2 px-3 rounded-full text-xs font-semibold transition-all duration-300 ${
+                      slippageMode === 'auto'
+                        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Auto
+                  </button>
+                  <button
+                    onClick={() => setSlippageMode('manual')}
+                    className={`flex-1 py-2 px-3 rounded-full text-xs font-semibold transition-all duration-300 ${
+                      slippageMode === 'manual'
+                        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Manual
+                  </button>
+                </div>
+
+                {/* Preset Buttons */}
+                <div className="flex gap-2">
+                  {slippagePresets.map((preset) => (
+                    <button
+                      key={preset}
+                      onClick={() => {
+                        setSlippage(preset);
+                        setSlippageMode('manual');
+                        setCustomSlippage('');
+                      }}
+                      className={`flex-1 py-2 rounded-full text-xs font-semibold transition-all duration-300 border ${
+                        slippage === preset && slippageMode === 'manual' && !customSlippage
+                          ? 'bg-primary/20 border-primary/50 text-primary'
+                          : 'bg-bubble-hover border-bubble-border text-muted-foreground hover:text-foreground hover:border-primary/30'
+                      }`}
+                    >
+                      {preset}%
+                    </button>
+                  ))}
+                </div>
+
+                {/* Custom Input */}
+                {slippageMode === 'manual' && (
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={customSlippage}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setCustomSlippage(value);
+                        if (value && parseFloat(value) > 0) {
+                          setSlippage(value);
+                        }
+                      }}
+                      placeholder="Custom"
+                      step="0.1"
+                      min="0.1"
+                      max="50"
+                      className="w-full bg-bubble-hover px-4 py-2.5 pr-8 rounded-full text-sm outline-none border border-bubble-border focus:border-primary/50 transition-all duration-300"
+                    />
+                    <span className="absolute right-4 top-2.5 text-sm text-muted-foreground">%</span>
+                  </div>
+                )}
+
+                {/* Current Selection Display */}
+                <div className="text-xs text-muted-foreground text-center pt-2 border-t border-bubble-border">
+                  Current: <span className="text-foreground font-semibold">{slippage}%</span> slippage
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
 
         {/* Swap Sub-tabs */}
