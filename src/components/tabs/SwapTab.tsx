@@ -285,7 +285,7 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Price Impact</span>
-              <span className={isCrossChain ? 'text-destructive' : 'text-green-500'}>
+              <span className={isCrossChain ? 'text-green-500' : 'text-destructive'}>
                 {isCrossChain ? '-0.12%' : '+0.02%'}
               </span>
             </div>
