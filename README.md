@@ -10,8 +10,6 @@ There are several ways of editing your application.
 
 **Use Lovable**
 
-Simply visit the (yieldlounge.com) and start prompting.
-
 Changes made via Lovable will be committed automatically to this repo.
 
 **Use your preferred IDE**
