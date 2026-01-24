@@ -4,10 +4,10 @@ import { Plus, ArrowLeft, ArrowLeftRight, ZoomIn, ZoomOut } from 'lucide-react';
 const tokens = ['UNI', 'WBTC', 'WETH', 'USDC', 'USDT'];
 
 const pools = [
-  { name: 'USDC-USDT', tvl: '$2.4M', fee: '0.01%', apr: '12.4%', price: 1.0002 },
-  { name: 'BTC-ETH', tvl: '$8.1M', fee: '0.3%', apr: '24.8%', price: 28.27 },
-  { name: 'ETH-USDC', tvl: '$5.2M', fee: '0.05%', apr: '18.2%', price: 3200 },
-  { name: 'BTC-USDC', tvl: '$3.7M', fee: '0.3%', apr: '21.5%', price: 90000 }
+  { name: 'USDC-USDT', tvl: '$2.4M', fee: '0.03%', apr: '12.4%', price: 1.0002 },
+  { name: 'BTC-ETH', tvl: '$8.1M', fee: '0.2%', apr: '24.8%', price: 28.27 },
+  { name: 'ETH-USDC', tvl: '$5.2M', fee: '0.2%', apr: '18.2%', price: 3200 },
+  { name: 'BTC-USDC', tvl: '$3.7M', fee: '0.2%', apr: '21.5%', price: 90000 }
 ];
 
 const positions = [
