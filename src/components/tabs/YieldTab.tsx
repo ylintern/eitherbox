@@ -18,6 +18,7 @@ interface PositionCardProps {
   currentPrice: string;
   minPrice: string;
   maxPrice: string;
+  priceUnit: string;
   yieldToken: string;
   poolShare: string;
   liquidity: string;
@@ -28,7 +29,7 @@ const YIELD_TOKEN_OPTIONS = ['UNI', 'BTC', 'ETH', 'USDC'];
 
 const PositionCard = ({ 
   pool, positionId, value, inRange, fee, currentPrice, minPrice, maxPrice, 
-  yieldToken, poolShare, liquidity, pending 
+  priceUnit, yieldToken, poolShare, liquidity, pending 
 }: PositionCardProps) => {
   const [closePercentage, setClosePercentage] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
@@ -179,7 +180,7 @@ const PositionCard = ({
           {/* Price Range */}
           <div className="bg-muted/20 rounded-[20px] p-5 mb-5 border border-bubble-border">
             <div className="flex justify-between items-center mb-3">
-              <span className="text-xs text-muted-foreground">Price Range</span>
+              <span className="text-xs text-muted-foreground">Price Range ({priceUnit})</span>
               <span className={`text-xs ${inRange ? 'text-muted-foreground' : 'text-secondary'}`}>
                 Current: {currentPrice}
               </span>
@@ -336,10 +337,11 @@ export const YieldTab = ({ walletConnected }: YieldTabProps) => {
             positionId="#48291"
             value="$2,481"
             inRange={true}
-            fee="0.05%"
-            currentPrice="1.0002"
-            minPrice="0.9980"
-            maxPrice="1.0020"
+            fee="0.2%"
+            currentPrice="3,200"
+            minPrice="3,100"
+            maxPrice="3,300"
+            priceUnit="USDC per ETH"
             yieldToken="UNI"
             poolShare="0.12%"
             liquidity="1,240.50"
@@ -350,10 +352,11 @@ export const YieldTab = ({ walletConnected }: YieldTabProps) => {
             positionId="#48156"
             value="$4,820"
             inRange={false}
-            fee="0.3%"
-            currentPrice="0.0548"
-            minPrice="0.0520"
-            maxPrice="0.0540"
+            fee="0.2%"
+            currentPrice="28.27"
+            minPrice="27.50"
+            maxPrice="28.00"
+            priceUnit="ETH per BTC"
             yieldToken="UNI"
             poolShare="0.03%"
             liquidity="0.234"
