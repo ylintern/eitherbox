@@ -10,7 +10,7 @@ There are several ways of editing your application.
 
 **Use Lovable**
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/91d0f1cd-055c-452f-b675-cea94ff507d7) and start prompting.
+Simply visit the (yieldlounge.com) and start prompting.
 
 Changes made via Lovable will be committed automatically to this repo.
 
