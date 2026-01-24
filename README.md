@@ -2,7 +2,7 @@
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/91d0f1cd-055c-452f-b675-cea94ff507d7
+**URL**: yieldlounge.com
 
 ## How can I edit this code?
 
