@@ -48,6 +48,21 @@ npm run dev
 - Click on "New codespace" to launch a new Codespace environment.
 - Edit files directly within the Codespace and commit and push your changes once you're done.
 
+
+## Runtime API configuration
+
+Copy `.env.example` to `.env` and fill in your own keys:
+
+```sh
+cp .env.example .env
+```
+
+Notes:
+- Keep **Uniswap TWAP/oracles** as the primary onchain price reference.
+- Use CoinGecko as a secondary fallback/sanity check.
+- Use QuickNode as the preferred Unichain RPC + WSS stream endpoint (`VITE_QUICKNODE_UNICHAIN_HTTP_URL`, `VITE_QUICKNODE_UNICHAIN_WSS_URL`).
+- Never commit real keys to git; use environment variables only.
+
 ## What technologies are used for this project?
 
 This project is built with:
