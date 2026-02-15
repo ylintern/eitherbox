@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
+    "cf:deploy": "npm run build && npx wrangler deploy",
+    "cf:preview": "npm run build && npx wrangler dev",
     "lint": "eslint .",
     "preview": "vite preview"
   },

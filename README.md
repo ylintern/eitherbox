@@ -69,3 +69,35 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+## Deploy to Cloudflare Workers (eitherbox)
+
+This repository is configured to deploy as a Cloudflare Worker named **`eitherbox`** using static assets from `dist/`.
+
+### Why the previous build failed
+Cloudflare auto-detected Bun and ran `bun install --frozen-lockfile`. The existing Bun lockfile format was outdated for the runtime in Cloudflare, which caused:
+
+- `Outdated lockfile version: failed to parse lockfile: 'bun.lockb'`
+- `error: lockfile had changes, but lockfile is frozen`
+
+To avoid that path, the Bun lockfile was removed so Cloudflare uses npm lockfiles instead.
+
+### Local commands
+
+```sh
+npm run build
+npm run cf:preview
+npm run cf:deploy
+```
+
+### Required Cloudflare settings
+
+- **Worker name:** `eitherbox`
+- **Build command:** `npm run build`
+- **Deploy command:** `npx wrangler deploy`
+
+If deploying from CI/CD, authenticate first with:
+
+```sh
+npx wrangler login
+```
