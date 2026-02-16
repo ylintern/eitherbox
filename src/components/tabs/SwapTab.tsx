@@ -5,8 +5,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  SUPPORTED_SWAP_TOKENS,
+  useSwapQuote,
+  type SupportedTokenSymbol,
+} from '@/uniswapintegration';
 
-const tokens = ['UNI', 'WBTC', 'WETH', 'USDC', 'USDT'];
+const tokens = SUPPORTED_SWAP_TOKENS;
 const chains = ['Ethereum', 'Arbitrum', 'Optimism', 'Base', 'Polygon'];
 const slippagePresets = ['0.3', '0.5', '1'];
 
@@ -17,15 +22,24 @@ interface SwapTabProps {
 export const SwapTab = ({ walletConnected }: SwapTabProps) => {
   const [swapSubTab, setSwapSubTab] = useState('standard');
   const [swapAmount, setSwapAmount] = useState('');
-  const [fromToken, setFromToken] = useState('USDC');
-  const [toToken, setToToken] = useState('UNI');
+  const [fromToken, setFromToken] = useState<SupportedTokenSymbol>('USDC');
+  const [toToken, setToToken] = useState<SupportedTokenSymbol>('UNI');
   const [fromChain, setFromChain] = useState('Ethereum');
   const [toChain, setToChain] = useState('Ethereum');
   const [slippage, setSlippage] = useState('0.3');
   const [slippageMode, setSlippageMode] = useState<'auto' | 'manual'>('auto');
   const [customSlippage, setCustomSlippage] = useState('');
 
+
   const isCrossChain = swapSubTab === 'crosschain';
+
+  const fallbackRate = isCrossChain ? 0.96 : 0.98;
+  const { displayedRate, quote, isLoading, error } = useSwapQuote({
+    fromToken,
+    toToken,
+    amountIn: swapAmount,
+    fallbackRate,
+  });
 
   return (
     <div className="max-w-xl mx-auto">
@@ -185,7 +199,7 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
             <div className="relative shrink-0">
               <select
                 value={fromToken}
-                onChange={(e) => setFromToken(e.target.value)}
+                onChange={(e) => setFromToken(e.target.value as SupportedTokenSymbol)}
                 className="appearance-none bg-bubble-hover px-5 py-3 pr-10 rounded-full font-semibold cursor-pointer hover:bg-muted transition-all duration-300 border border-bubble-border"
               >
                 {tokens.map(token => (
@@ -239,13 +253,13 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
               type="number"
               placeholder="0.0"
               className="flex-1 bg-transparent text-3xl font-semibold outline-none min-w-0"
-              value={swapAmount ? (parseFloat(swapAmount) * (isCrossChain ? 0.96 : 0.98)).toFixed(2) : ''}
+              value={swapAmount ? (parseFloat(swapAmount) * displayedRate).toFixed(2) : ''}
               disabled
             />
             <div className="relative shrink-0">
               <select
                 value={toToken}
-                onChange={(e) => setToToken(e.target.value)}
+                onChange={(e) => setToToken(e.target.value as SupportedTokenSymbol)}
                 className="appearance-none bg-bubble-hover px-5 py-3 pr-10 rounded-full font-semibold cursor-pointer hover:bg-muted transition-all duration-300 border border-bubble-border"
               >
                 {tokens.map(token => (
@@ -280,13 +294,13 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Rate</span>
               <span className="text-foreground/80">
-                1 {fromToken} = {isCrossChain ? '0.96' : '0.98'} {toToken}
+                1 {fromToken} = {displayedRate.toFixed(6)} {toToken}
               </span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Price Impact</span>
-              <span className={isCrossChain ? 'text-green-500' : 'text-destructive'}>
-                {isCrossChain ? '-0.12%' : '+0.02%'}
+              <span className="text-muted-foreground">Price Source</span>
+              <span className="text-foreground/80">
+                {error ? 'fallback-estimate' : quote?.source ?? (isLoading ? 'loading' : 'estimate')}
               </span>
             </div>
             <div className="flex justify-between text-sm">
