@@ -57,10 +57,33 @@ Copy `.env.example` to `.env` and fill in your own keys:
 cp .env.example .env
 ```
 
+The frontend now calls Worker backend endpoints for live data:
+- `/api/uniswap/quote` for token quote rates
+- `/api/onchain/pools` for tracked Unichain pool snapshots (RPC-backed)
+- `/api/wallet/overview` for wallet balances and position placeholders
+
+For deployed Workers, keep CoinGecko credentials server-side only:
+
+```sh
+wrangler secret put COINGECKO_API_KEY
+wrangler secret put ALCHEMY_UNICHAIN_URL
+wrangler secret put GOLDSKY_RPC_URL
+```
+
 Notes:
 - Keep **Uniswap TWAP/oracles** as the primary onchain price reference.
-- Use CoinGecko as a secondary fallback/sanity check.
-- Never commit real keys to git; use environment variables only.
+- Use CoinGecko server-side as a temporary quote source while Uniswap contract integration is being wired.
+- Never commit real keys to git; use environment variables and Worker secrets only.
+
+### Uniswap integration modules
+
+A dedicated scaffold now lives under `src/uniswapintegration/`:
+- `types/` for integration request/response contracts
+- `services/` for backend quote API calls
+- `hooks/` for React quote-fetch lifecycle
+- `constants/` for supported token lists
+
+These modules are now wired into Swap/Pool/Yield tabs and can be extended with Uniswap ABI position + TWAP/oracle readers in the next step.
 
 ## What technologies are used for this project?
 
