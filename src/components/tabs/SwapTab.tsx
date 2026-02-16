@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Settings, ArrowUpDown, ChevronDown } from 'lucide-react';
 import {
   Popover,
@@ -192,9 +192,13 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
             <input
               type="number"
               value={swapAmount}
-              onChange={(e) => setSwapAmount(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === '' || parseFloat(val) >= 0) setSwapAmount(val);
+              }}
+              min="0"
               placeholder="0.0"
-              className="flex-1 bg-transparent text-3xl font-semibold outline-none min-w-0"
+              className="flex-1 bg-transparent text-3xl font-semibold outline-none min-w-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [appearance:textfield]"
             />
             <div className="relative shrink-0">
               <select
