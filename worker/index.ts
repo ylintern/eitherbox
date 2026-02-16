@@ -43,42 +43,66 @@ const TOKEN_TO_COINGECKO_ID: Record<string, string> = {
   USDT: 'tether',
 };
 
+const PUBLIC_UNICHAIN_RPC_FALLBACKS = [
+  'https://unichain-sepolia-rpc.publicnode.com',
+  'https://rpc.ankr.com/unichain_testnet',
+];
+
 const resolveCoinId = (token: string) => TOKEN_TO_COINGECKO_ID[token.toUpperCase()] || '';
 
-const getRpcUrl = (env: Env) => env.ALCHEMY_UNICHAIN_URL || env.GOLDSKY_RPC_URL || '';
+const getRpcUrls = (env: Env) => {
+  const urls = [env.ALCHEMY_UNICHAIN_URL, env.GOLDSKY_RPC_URL, ...PUBLIC_UNICHAIN_RPC_FALLBACKS]
+    .filter(Boolean)
+    .map((url) => (url as string).trim())
+    .filter((url, index, arr) => arr.indexOf(url) === index);
+
+  return urls;
+};
 
 const rpcCall = async <T>(env: Env, method: string, params: unknown[] = []) => {
-  const rpcUrl = getRpcUrl(env);
+  const rpcUrls = getRpcUrls(env);
 
-  if (!rpcUrl) {
-    throw new Error('Missing RPC URL: set ALCHEMY_UNICHAIN_URL or GOLDSKY_RPC_URL');
+  if (rpcUrls.length === 0) {
+    throw new Error('No RPC URLs configured');
   }
 
-  const response = await fetch(rpcUrl, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: 1,
-      method,
-      params,
-    }),
-  });
+  const errors: string[] = [];
 
-  if (!response.ok) {
-    throw new Error(`RPC HTTP failure (${response.status})`);
+  for (const rpcUrl of rpcUrls) {
+    try {
+      const response = await fetch(rpcUrl, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method,
+          params,
+        }),
+      });
+
+      if (!response.ok) {
+        errors.push(`${rpcUrl}: HTTP ${response.status}`);
+        continue;
+      }
+
+      const payload = (await response.json()) as {
+        result?: T;
+        error?: { message?: string };
+      };
+
+      if (payload.error) {
+        errors.push(`${rpcUrl}: ${payload.error.message || 'RPC error'}`);
+        continue;
+      }
+
+      return payload.result as T;
+    } catch (error) {
+      errors.push(`${rpcUrl}: ${error instanceof Error ? error.message : 'network error'}`);
+    }
   }
 
-  const payload = (await response.json()) as {
-    result?: T;
-    error?: { message?: string };
-  };
-
-  if (payload.error) {
-    throw new Error(payload.error.message || `RPC ${method} failed`);
-  }
-
-  return payload.result as T;
+  throw new Error(`RPC ${method} failed on all providers: ${errors.join(' | ')}`);
 };
 
 const getSwapRate = async (from: string, to: string, apiKey?: string) => {
@@ -143,12 +167,22 @@ const getQuotePayload = async (
 };
 
 const getTrackedPoolsPayload = async (env: Env) => {
-  const hexBlock = await rpcCall<string>(env, 'eth_blockNumber');
-  const blockNumber = Number.parseInt(hexBlock, 16);
+  let blockNumber = 0;
+  let source = 'static-pools';
+
+  try {
+    const hexBlock = await rpcCall<string>(env, 'eth_blockNumber');
+    blockNumber = Number.parseInt(hexBlock, 16);
+    source = 'rpc';
+  } catch {
+    blockNumber = 0;
+    source = 'static-pools';
+  }
 
   return {
     chain: 'unichain',
     blockNumber,
+    source,
     pools: TRACKED_POOL_IDS.map((poolId) => ({
       poolId,
       chain: 'unichain' as const,
@@ -177,8 +211,13 @@ const getWalletOverview = async (env: Env, address: string) => {
     throw new Error('Invalid wallet address');
   }
 
-  const nativeBalanceHex = await rpcCall<string>(env, 'eth_getBalance', [normalizedAddress, 'latest']);
-  const nativeBalanceEth = hexToDecimalString(nativeBalanceHex, 18);
+  let nativeBalanceEth = '0';
+  try {
+    const nativeBalanceHex = await rpcCall<string>(env, 'eth_getBalance', [normalizedAddress, 'latest']);
+    nativeBalanceEth = hexToDecimalString(nativeBalanceHex, 18);
+  } catch {
+    nativeBalanceEth = '0';
+  }
 
   let tokenBalances: {
     symbol: string;
@@ -230,7 +269,7 @@ const getWalletOverview = async (env: Env, address: string) => {
     nativeBalanceEth,
     tokenBalances,
     openPositions: [],
-    source: 'rpc+alchemy',
+    source: 'rpc+alchemy-fallback-safe',
   };
 };
 
@@ -264,14 +303,7 @@ export default {
     }
 
     if (url.pathname === '/api/onchain/pools') {
-      try {
-        return json(await getTrackedPoolsPayload(env));
-      } catch (error) {
-        return json(
-          { error: error instanceof Error ? error.message : 'Failed to fetch onchain pools' },
-          { status: 502 }
-        );
-      }
+      return json(await getTrackedPoolsPayload(env));
     }
 
     if (url.pathname === '/api/wallet/overview') {
