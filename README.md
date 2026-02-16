@@ -57,7 +57,7 @@ Copy `.env.example` to `.env` and fill in your own keys:
 cp .env.example .env
 ```
 
-The frontend now calls the Worker backend at `/api/swap-rate` for token pricing.
+The frontend now calls the Worker backend at `/api/uniswap/quote` for swap quote scaffolding (with `/api/swap-rate` retained for compatibility).
 
 For deployed Workers, keep CoinGecko credentials server-side only:
 
@@ -67,8 +67,18 @@ wrangler secret put COINGECKO_API_KEY
 
 Notes:
 - Keep **Uniswap TWAP/oracles** as the primary onchain price reference.
-- Use CoinGecko as a secondary fallback/sanity check.
+- Use CoinGecko server-side as a temporary quote source while Uniswap contract integration is being wired.
 - Never commit real keys to git; use environment variables and Worker secrets only.
+
+### Uniswap integration skeleton
+
+A dedicated scaffold now lives under `src/uniswapintegration/`:
+- `types/` for integration request/response contracts
+- `services/` for backend quote API calls
+- `hooks/` for React quote-fetch lifecycle
+- `constants/` for supported token lists
+
+This is intended to receive Unichain ABI + smart contract wiring in the next step.
 
 ## What technologies are used for this project?
 

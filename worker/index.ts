@@ -3,6 +3,16 @@ interface Env {
   COINGECKO_API_KEY?: string;
 }
 
+interface QuotePayload {
+  fromToken: string;
+  toToken: string;
+  rate: number;
+  amountOut?: string;
+  source: string;
+  timestamp: string;
+  routeStatus: 'skeleton';
+}
+
 const json = (body: unknown, init?: ResponseInit) =>
   new Response(JSON.stringify(body), {
     headers: {
@@ -43,11 +53,7 @@ const getSwapRate = async (from: string, to: string, apiKey?: string) => {
 
   const response = await fetch(
     `https://api.coingecko.com/api/v3/simple/price?${params.toString()}`,
-    {
-      headers: {
-        accept: 'application/json',
-      },
-    }
+    { headers: { accept: 'application/json' } }
   );
 
   if (!response.ok) {
@@ -66,13 +72,38 @@ const getSwapRate = async (from: string, to: string, apiKey?: string) => {
   return fromPrice / toPrice;
 };
 
+const getQuotePayload = async (
+  from: string,
+  to: string,
+  amountIn: string | null,
+  apiKey?: string
+): Promise<QuotePayload> => {
+  const rate = await getSwapRate(from, to, apiKey);
+
+  const parsedAmount = amountIn ? Number(amountIn) : NaN;
+  const amountOut = Number.isFinite(parsedAmount)
+    ? (parsedAmount * rate).toFixed(6)
+    : undefined;
+
+  return {
+    fromToken: from.toUpperCase(),
+    toToken: to.toUpperCase(),
+    rate,
+    amountOut,
+    source: 'coingecko-backend',
+    timestamp: new Date().toISOString(),
+    routeStatus: 'skeleton',
+  };
+};
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
-    if (url.pathname === '/api/swap-rate') {
+    if (url.pathname === '/api/uniswap/quote' || url.pathname === '/api/swap-rate') {
       const from = url.searchParams.get('from') || '';
       const to = url.searchParams.get('to') || '';
+      const amountIn = url.searchParams.get('amountIn');
 
       if (!from || !to) {
         return json(
@@ -82,14 +113,8 @@ export default {
       }
 
       try {
-        const rate = await getSwapRate(from, to, env.COINGECKO_API_KEY);
-        return json({
-          from: from.toUpperCase(),
-          to: to.toUpperCase(),
-          rate,
-          source: 'coingecko',
-          timestamp: new Date().toISOString(),
-        });
+        const payload = await getQuotePayload(from, to, amountIn, env.COINGECKO_API_KEY);
+        return json(payload);
       } catch (error) {
         return json(
           {

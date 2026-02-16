@@ -5,9 +5,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { fetchSwapRate } from '@/lib/api';
+import {
+  SUPPORTED_SWAP_TOKENS,
+  useSwapQuote,
+  type SupportedTokenSymbol,
+} from '@/uniswapintegration';
 
-const tokens = ['UNI', 'WBTC', 'WETH', 'USDC', 'USDT'];
+const tokens = SUPPORTED_SWAP_TOKENS;
 const chains = ['Ethereum', 'Arbitrum', 'Optimism', 'Base', 'Polygon'];
 const slippagePresets = ['0.3', '0.5', '1'];
 
@@ -18,51 +22,24 @@ interface SwapTabProps {
 export const SwapTab = ({ walletConnected }: SwapTabProps) => {
   const [swapSubTab, setSwapSubTab] = useState('standard');
   const [swapAmount, setSwapAmount] = useState('');
-  const [fromToken, setFromToken] = useState('USDC');
-  const [toToken, setToToken] = useState('UNI');
+  const [fromToken, setFromToken] = useState<SupportedTokenSymbol>('USDC');
+  const [toToken, setToToken] = useState<SupportedTokenSymbol>('UNI');
   const [fromChain, setFromChain] = useState('Ethereum');
   const [toChain, setToChain] = useState('Ethereum');
   const [slippage, setSlippage] = useState('0.3');
   const [slippageMode, setSlippageMode] = useState<'auto' | 'manual'>('auto');
   const [customSlippage, setCustomSlippage] = useState('');
 
-  const [marketRate, setMarketRate] = useState<number | null>(null);
-  const [rateSource, setRateSource] = useState('estimated');
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadRate = async () => {
-      try {
-        const response = await fetchSwapRate(fromToken, toToken);
-        if (!cancelled) {
-          setMarketRate(response.rate);
-          setRateSource(response.source);
-        }
-      } catch {
-        if (!cancelled) {
-          setMarketRate(null);
-          setRateSource('estimated');
-        }
-      }
-    };
-
-    void loadRate();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [fromToken, toToken]);
 
   const isCrossChain = swapSubTab === 'crosschain';
 
-  const displayedRate = useMemo(() => {
-    if (marketRate && Number.isFinite(marketRate)) {
-      return marketRate;
-    }
-
-    return isCrossChain ? 0.96 : 0.98;
-  }, [isCrossChain, marketRate]);
+  const fallbackRate = isCrossChain ? 0.96 : 0.98;
+  const { displayedRate, quote, isLoading, error } = useSwapQuote({
+    fromToken,
+    toToken,
+    amountIn: swapAmount,
+    fallbackRate,
+  });
 
   return (
     <div className="max-w-xl mx-auto">
@@ -226,7 +203,7 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
             <div className="relative shrink-0">
               <select
                 value={fromToken}
-                onChange={(e) => setFromToken(e.target.value)}
+                onChange={(e) => setFromToken(e.target.value as SupportedTokenSymbol)}
                 className="appearance-none bg-bubble-hover px-5 py-3 pr-10 rounded-full font-semibold cursor-pointer hover:bg-muted transition-all duration-300 border border-bubble-border"
               >
                 {tokens.map(token => (
@@ -286,7 +263,7 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
             <div className="relative shrink-0">
               <select
                 value={toToken}
-                onChange={(e) => setToToken(e.target.value)}
+                onChange={(e) => setToToken(e.target.value as SupportedTokenSymbol)}
                 className="appearance-none bg-bubble-hover px-5 py-3 pr-10 rounded-full font-semibold cursor-pointer hover:bg-muted transition-all duration-300 border border-bubble-border"
               >
                 {tokens.map(token => (
@@ -326,7 +303,9 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Price Source</span>
-              <span className="text-foreground/80">{rateSource}</span>
+              <span className="text-foreground/80">
+                {error ? 'fallback-estimate' : quote?.source ?? (isLoading ? 'loading' : 'estimate')}
+              </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Slippage</span>
