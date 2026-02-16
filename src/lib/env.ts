@@ -3,6 +3,7 @@ const trimTrailingSlash = (value: string) => value.replace(/\/+$/, '');
 export const env = {
   walletConnectProjectId:
     import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || 'eitherbox-demo',
+  apiBaseUrl: trimTrailingSlash(import.meta.env.VITE_API_BASE_URL || ''),
   coingeckoApiKey: import.meta.env.VITE_COINGECKO_API_KEY || '',
   graphApiKey: import.meta.env.VITE_GRAPH_API_KEY || '',
   alchemyApiKey: import.meta.env.VITE_ALCHEMY_API_KEY || '',
