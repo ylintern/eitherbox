@@ -5,9 +5,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { useAccount } from 'wagmi';
 import {
   SUPPORTED_SWAP_TOKENS,
   useSwapQuote,
+  useWalletOverview,
   type SupportedTokenSymbol,
 } from '@/uniswapintegration';
 
@@ -30,6 +32,20 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
   const [slippageMode, setSlippageMode] = useState<'auto' | 'manual'>('auto');
   const [customSlippage, setCustomSlippage] = useState('');
 
+
+  const { address } = useAccount();
+  const { overview } = useWalletOverview(address);
+
+  const getTokenBalance = (symbol: SupportedTokenSymbol) => {
+    const token = overview?.tokenBalances.find((item) => item.symbol === symbol);
+    if (!token) return null;
+    const numeric = Number(token.balance);
+    if (!Number.isFinite(numeric)) return null;
+    return numeric;
+  };
+
+  const fromTokenBalance = getTokenBalance(fromToken);
+  const toTokenBalance = getTokenBalance(toToken);
 
   const isCrossChain = swapSubTab === 'crosschain';
 
@@ -166,7 +182,7 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
         <div className="bubble-sm p-5">
           <div className="flex justify-between mb-3">
             <span className="text-sm text-muted-foreground">From</span>
-            <span className="text-sm text-muted-foreground">Balance: 1,245.50</span>
+            <span className="text-sm text-muted-foreground">Balance: {fromTokenBalance?.toLocaleString(undefined, { maximumFractionDigits: 6 }) ?? '—'}</span>
           </div>
           
           {/* Chain Selector for Cross-chain */}
@@ -230,7 +246,7 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
         <div className="bubble-sm p-5 mb-6">
           <div className="flex justify-between mb-3">
             <span className="text-sm text-muted-foreground">To</span>
-            <span className="text-sm text-muted-foreground">Balance: 89.23</span>
+            <span className="text-sm text-muted-foreground">Balance: {toTokenBalance?.toLocaleString(undefined, { maximumFractionDigits: 6 }) ?? '—'}</span>
           </div>
           
           {/* Chain Selector for Cross-chain */}
