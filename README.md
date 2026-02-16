@@ -57,10 +57,18 @@ Copy `.env.example` to `.env` and fill in your own keys:
 cp .env.example .env
 ```
 
+The frontend now calls the Worker backend at `/api/swap-rate` for token pricing.
+
+For deployed Workers, keep CoinGecko credentials server-side only:
+
+```sh
+wrangler secret put COINGECKO_API_KEY
+```
+
 Notes:
 - Keep **Uniswap TWAP/oracles** as the primary onchain price reference.
 - Use CoinGecko as a secondary fallback/sanity check.
-- Never commit real keys to git; use environment variables only.
+- Never commit real keys to git; use environment variables and Worker secrets only.
 
 ## What technologies are used for this project?
 

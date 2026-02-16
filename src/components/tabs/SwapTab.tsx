@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Settings, ArrowUpDown, ChevronDown } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { fetchSwapRate } from '@/lib/api';
 
 const tokens = ['UNI', 'WBTC', 'WETH', 'USDC', 'USDT'];
 const chains = ['Ethereum', 'Arbitrum', 'Optimism', 'Base', 'Polygon'];
@@ -25,7 +26,43 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
   const [slippageMode, setSlippageMode] = useState<'auto' | 'manual'>('auto');
   const [customSlippage, setCustomSlippage] = useState('');
 
+  const [marketRate, setMarketRate] = useState<number | null>(null);
+  const [rateSource, setRateSource] = useState('estimated');
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadRate = async () => {
+      try {
+        const response = await fetchSwapRate(fromToken, toToken);
+        if (!cancelled) {
+          setMarketRate(response.rate);
+          setRateSource(response.source);
+        }
+      } catch {
+        if (!cancelled) {
+          setMarketRate(null);
+          setRateSource('estimated');
+        }
+      }
+    };
+
+    void loadRate();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fromToken, toToken]);
+
   const isCrossChain = swapSubTab === 'crosschain';
+
+  const displayedRate = useMemo(() => {
+    if (marketRate && Number.isFinite(marketRate)) {
+      return marketRate;
+    }
+
+    return isCrossChain ? 0.96 : 0.98;
+  }, [isCrossChain, marketRate]);
 
   return (
     <div className="max-w-xl mx-auto">
@@ -239,7 +276,7 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
               type="number"
               placeholder="0.0"
               className="flex-1 bg-transparent text-3xl font-semibold outline-none min-w-0"
-              value={swapAmount ? (parseFloat(swapAmount) * (isCrossChain ? 0.96 : 0.98)).toFixed(2) : ''}
+              value={swapAmount ? (parseFloat(swapAmount) * displayedRate).toFixed(2) : ''}
               disabled
             />
             <div className="relative shrink-0">
@@ -280,14 +317,12 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Rate</span>
               <span className="text-foreground/80">
-                1 {fromToken} = {isCrossChain ? '0.96' : '0.98'} {toToken}
+                1 {fromToken} = {displayedRate.toFixed(6)} {toToken}
               </span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Price Impact</span>
-              <span className={isCrossChain ? 'text-green-500' : 'text-destructive'}>
-                {isCrossChain ? '-0.12%' : '+0.02%'}
-              </span>
+              <span className="text-muted-foreground">Price Source</span>
+              <span className="text-foreground/80">{rateSource}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Slippage</span>
