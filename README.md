@@ -51,10 +51,19 @@ npm run dev
 
 ## Runtime API configuration
 
-Copy `.env.example` to `.env` and fill in your own keys:
+Copy `.env.example` to `.env` (or `.env.local`) and fill in your own keys:
 
 ```sh
 cp .env.example .env
+cp .dev.vars.example .dev.vars
+```
+
+
+For local Worker secret testing, use `.dev.vars` (already gitignored):
+
+```sh
+# never commit this file
+cp .dev.vars.example .dev.vars
 ```
 
 The frontend now calls Worker backend endpoints for live data:
@@ -73,8 +82,9 @@ wrangler secret put GRAPH_API_KEY
 
 Notes:
 - Keep **Uniswap TWAP/oracles** as the primary onchain price reference.
-- Use Uniswap subgraph data through The Graph for live Ethereum quotes, with CoinGecko as a safe fallback for rollout and non-Ethereum coverage.
+- Use Uniswap subgraph data through The Graph for live quotes (ethereum: v4 first then v3 fallback; unichain/base: configured v4 chain subgraph), with CoinGecko as a safe fallback if subgraph reads fail.
 - Never commit real keys to git; use environment variables and Worker secrets only.
+- If credentials have ever been shared in chat or logs, rotate them immediately and replace them in your local env / provider dashboard.
 
 ### Uniswap integration modules
 
