@@ -51,10 +51,33 @@ npm run dev
 
 ## Runtime API configuration
 
-Copy `.env.example` to `.env` and fill in your own keys:
+Copy `.env.example` to `.env` (or `.env.local`) and fill in your own keys:
 
 ```sh
 cp .env.example .env
+cp .dev.vars.example .dev.vars
+```
+
+
+For local Worker secret testing, use `.dev.vars` (already gitignored):
+
+```sh
+# never commit this file
+cp .dev.vars.example .dev.vars
+```
+
+The frontend now calls Worker backend endpoints for live data:
+- `/api/uniswap/quote` for token quote rates (`chain=unichain|ethereum|base`)
+- `/api/onchain/pools` for tracked Unichain pool snapshots (RPC-backed)
+- `/api/wallet/overview` for wallet balances and position placeholders
+
+For deployed Workers, keep CoinGecko credentials server-side only:
+
+```sh
+wrangler secret put COINGECKO_API_KEY
+wrangler secret put ALCHEMY_UNICHAIN_URL
+wrangler secret put GOLDSKY_RPC_URL
+wrangler secret put GRAPH_API_KEY
 ```
 
 Notes:

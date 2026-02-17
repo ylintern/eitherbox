@@ -1,13 +1,25 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Settings, ArrowUpDown, ChevronDown } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { useAccount } from 'wagmi';
+import {
+  CHAIN_LABELS,
+  SUPPORTED_SWAP_CHAINS,
+  SUPPORTED_SWAP_TOKENS,
+  TOKEN_ADDRESS_BY_CHAIN,
+  UNISWAP_APP_CHAIN_QUERY,
+  useSwapQuote,
+  useWalletOverview,
+  type SupportedSwapChain,
+  type SupportedTokenSymbol,
+} from '@/uniswapintegration';
 
-const tokens = ['UNI', 'WBTC', 'WETH', 'USDC', 'USDT'];
-const chains = ['Ethereum', 'Arbitrum', 'Optimism', 'Base', 'Polygon'];
+const tokens = SUPPORTED_SWAP_TOKENS;
+const chains = SUPPORTED_SWAP_CHAINS;
 const slippagePresets = ['0.3', '0.5', '1'];
 
 interface SwapTabProps {
@@ -17,15 +29,57 @@ interface SwapTabProps {
 export const SwapTab = ({ walletConnected }: SwapTabProps) => {
   const [swapSubTab, setSwapSubTab] = useState('standard');
   const [swapAmount, setSwapAmount] = useState('');
-  const [fromToken, setFromToken] = useState('USDC');
-  const [toToken, setToToken] = useState('UNI');
-  const [fromChain, setFromChain] = useState('Ethereum');
-  const [toChain, setToChain] = useState('Ethereum');
+  const [fromToken, setFromToken] = useState<SupportedTokenSymbol>('USDC');
+  const [toToken, setToToken] = useState<SupportedTokenSymbol>('UNI');
+  const [fromChain, setFromChain] = useState<SupportedSwapChain>('unichain');
+  const [toChain, setToChain] = useState<SupportedSwapChain>('unichain');
   const [slippage, setSlippage] = useState('0.3');
   const [slippageMode, setSlippageMode] = useState<'auto' | 'manual'>('auto');
   const [customSlippage, setCustomSlippage] = useState('');
 
+
+  const { address } = useAccount();
+  const { overview } = useWalletOverview(address);
+
+  const getTokenBalance = (symbol: SupportedTokenSymbol) => {
+    const token = overview?.tokenBalances.find((item) => item.symbol === symbol);
+    if (!token) return null;
+    const numeric = Number(token.balance);
+    if (!Number.isFinite(numeric)) return null;
+    return numeric;
+  };
+
+  const fromTokenBalance = getTokenBalance(fromToken);
+  const toTokenBalance = getTokenBalance(toToken);
+
   const isCrossChain = swapSubTab === 'crosschain';
+
+  const fallbackRate = isCrossChain ? 0.96 : 0.98;
+  const { displayedRate, quote, isLoading, error } = useSwapQuote({
+    fromToken,
+    toToken,
+    chain: fromChain,
+    amountIn: swapAmount,
+    fallbackRate,
+  });
+
+  const openUniswapSwap = () => {
+    const chainQuery = UNISWAP_APP_CHAIN_QUERY[fromChain];
+    const inputCurrency = TOKEN_ADDRESS_BY_CHAIN[fromChain][fromToken] || fromToken;
+    const outputCurrency = TOKEN_ADDRESS_BY_CHAIN[fromChain][toToken] || toToken;
+    const query = new URLSearchParams({
+      chain: chainQuery,
+      inputCurrency,
+      outputCurrency,
+    });
+
+    if (swapAmount && Number.isFinite(Number(swapAmount)) && Number(swapAmount) > 0) {
+      query.set('exactAmount', swapAmount);
+      query.set('exactField', 'input');
+    }
+
+    window.open(`https://app.uniswap.org/swap?${query.toString()}`, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <div className="max-w-xl mx-auto">
@@ -152,7 +206,7 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
         <div className="bubble-sm p-5">
           <div className="flex justify-between mb-3">
             <span className="text-sm text-muted-foreground">From</span>
-            <span className="text-sm text-muted-foreground">Balance: 1,245.50</span>
+            <span className="text-sm text-muted-foreground">Balance: {fromTokenBalance?.toLocaleString(undefined, { maximumFractionDigits: 6 }) ?? '—'}</span>
           </div>
           
           {/* Chain Selector for Cross-chain */}
@@ -162,11 +216,11 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
               <div className="relative">
                 <select
                   value={fromChain}
-                  onChange={(e) => setFromChain(e.target.value)}
+                  onChange={(e) => setFromChain(e.target.value as SupportedSwapChain)}
                   className="w-full appearance-none bg-secondary/10 px-5 py-3 pr-12 rounded-full text-sm font-semibold cursor-pointer hover:bg-secondary/20 transition-all duration-300 border border-secondary/30 text-secondary"
                 >
-                  {chains.map(chain => (
-                    <option key={chain} value={chain}>{chain}</option>
+                  {chains.map((chain) => (
+                    <option key={chain} value={chain}>{CHAIN_LABELS[chain]}</option>
                   ))}
                 </select>
                 <ChevronDown className="absolute right-4 top-3.5 pointer-events-none text-secondary" size={16} />
@@ -178,14 +232,18 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
             <input
               type="number"
               value={swapAmount}
-              onChange={(e) => setSwapAmount(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === '' || parseFloat(val) >= 0) setSwapAmount(val);
+              }}
+              min="0"
               placeholder="0.0"
-              className="flex-1 bg-transparent text-3xl font-semibold outline-none min-w-0"
+              className="flex-1 bg-transparent text-3xl font-semibold outline-none min-w-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [appearance:textfield]"
             />
             <div className="relative shrink-0">
               <select
                 value={fromToken}
-                onChange={(e) => setFromToken(e.target.value)}
+                onChange={(e) => setFromToken(e.target.value as SupportedTokenSymbol)}
                 className="appearance-none bg-bubble-hover px-5 py-3 pr-10 rounded-full font-semibold cursor-pointer hover:bg-muted transition-all duration-300 border border-bubble-border"
               >
                 {tokens.map(token => (
@@ -212,7 +270,7 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
         <div className="bubble-sm p-5 mb-6">
           <div className="flex justify-between mb-3">
             <span className="text-sm text-muted-foreground">To</span>
-            <span className="text-sm text-muted-foreground">Balance: 89.23</span>
+            <span className="text-sm text-muted-foreground">Balance: {toTokenBalance?.toLocaleString(undefined, { maximumFractionDigits: 6 }) ?? '—'}</span>
           </div>
           
           {/* Chain Selector for Cross-chain */}
@@ -222,11 +280,11 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
               <div className="relative">
                 <select
                   value={toChain}
-                  onChange={(e) => setToChain(e.target.value)}
+                  onChange={(e) => setToChain(e.target.value as SupportedSwapChain)}
                   className="w-full appearance-none bg-secondary/10 px-5 py-3 pr-12 rounded-full text-sm font-semibold cursor-pointer hover:bg-secondary/20 transition-all duration-300 border border-secondary/30 text-secondary"
                 >
-                  {chains.map(chain => (
-                    <option key={chain} value={chain}>{chain}</option>
+                  {chains.map((chain) => (
+                    <option key={chain} value={chain}>{CHAIN_LABELS[chain]}</option>
                   ))}
                 </select>
                 <ChevronDown className="absolute right-4 top-3.5 pointer-events-none text-secondary" size={16} />
@@ -239,13 +297,13 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
               type="number"
               placeholder="0.0"
               className="flex-1 bg-transparent text-3xl font-semibold outline-none min-w-0"
-              value={swapAmount ? (parseFloat(swapAmount) * (isCrossChain ? 0.96 : 0.98)).toFixed(2) : ''}
+              value={swapAmount ? (parseFloat(swapAmount) * displayedRate).toFixed(2) : ''}
               disabled
             />
             <div className="relative shrink-0">
               <select
                 value={toToken}
-                onChange={(e) => setToToken(e.target.value)}
+                onChange={(e) => setToToken(e.target.value as SupportedTokenSymbol)}
                 className="appearance-none bg-bubble-hover px-5 py-3 pr-10 rounded-full font-semibold cursor-pointer hover:bg-muted transition-all duration-300 border border-bubble-border"
               >
                 {tokens.map(token => (
@@ -265,7 +323,7 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
               <span className="text-xs font-semibold text-secondary">Cross-Chain Bridge</span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Bridging from {fromChain} to {toChain}. Estimated time: 3-5 minutes
+              Bridge execution is not wired yet. You can swap on {CHAIN_LABELS[fromChain]} now; destination chain support is next.
             </p>
           </div>
         )}
@@ -280,14 +338,22 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Rate</span>
               <span className="text-foreground/80">
-                1 {fromToken} = {isCrossChain ? '0.96' : '0.98'} {toToken}
+                1 {fromToken} = {displayedRate.toFixed(6)} {toToken}
               </span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Price Impact</span>
-              <span className={isCrossChain ? 'text-green-500' : 'text-destructive'}>
-                {isCrossChain ? '-0.12%' : '+0.02%'}
+              <span className="text-muted-foreground">Price Source</span>
+              <span className="text-foreground/80">
+                {error ? 'fallback-estimate' : quote?.source ?? (isLoading ? 'loading' : 'estimate')}
               </span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Route Status</span>
+              <span className="text-foreground/80">{quote?.routeStatus ?? 'skeleton'}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Quote Chain</span>
+              <span className="text-foreground/80">{CHAIN_LABELS[quote?.chain ?? fromChain]}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Slippage</span>
@@ -297,6 +363,8 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
         )}
 
         <button
+          type="button"
+          onClick={openUniswapSwap}
           disabled={!swapAmount}
           className={`w-full py-4 rounded-full font-bold transition-all duration-300 ${
             swapAmount
@@ -309,8 +377,8 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
           {!swapAmount 
             ? 'Enter Amount' 
             : isCrossChain
-            ? 'Bridge & Swap'
-            : 'Swap Tokens'}
+            ? 'Open Source-Chain Swap on Uniswap'
+            : 'Open Swap on Uniswap'}
         </button>
       </div>
     </div>
