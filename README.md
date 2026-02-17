@@ -51,10 +51,19 @@ npm run dev
 
 ## Runtime API configuration
 
-Copy `.env.example` to `.env` and fill in your own keys:
+Copy `.env.example` to `.env` (or `.env.local`) and fill in your own keys:
 
 ```sh
 cp .env.example .env
+cp .dev.vars.example .dev.vars
+```
+
+
+For local Worker secret testing, use `.dev.vars` (already gitignored):
+
+```sh
+# never commit this file
+cp .dev.vars.example .dev.vars
 ```
 
 The frontend now calls Worker backend endpoints for live data:
