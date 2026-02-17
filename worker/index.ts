@@ -3,6 +3,7 @@ interface Env {
   COINGECKO_API_KEY?: string;
   ALCHEMY_UNICHAIN_URL?: string;
   GOLDSKY_RPC_URL?: string;
+  UNISWAP_API_KEY?: string;
 }
 
 interface QuotePayload {
@@ -12,7 +13,8 @@ interface QuotePayload {
   amountOut?: string;
   source: string;
   timestamp: string;
-  routeStatus: 'skeleton';
+  chain: 'unichain' | 'ethereum' | 'base';
+  routeStatus: 'skeleton' | 'live';
 }
 
 const TRACKED_POOL_IDS = [
@@ -23,6 +25,13 @@ const TRACKED_POOL_IDS = [
 ] as const;
 
 const SUPPORTED_SYMBOLS = new Set(['UNI', 'WBTC', 'WETH', 'USDC', 'USDT']);
+const SUPPORTED_CHAINS = new Set(['unichain', 'ethereum', 'base']);
+
+const CHAIN_ID_MAP: Record<'unichain' | 'ethereum' | 'base', number> = {
+  unichain: 130,
+  ethereum: 1,
+  base: 8453,
+};
 
 const json = (body: unknown, init?: ResponseInit) =>
   new Response(JSON.stringify(body), {
@@ -105,9 +114,23 @@ const rpcCall = async <T>(env: Env, method: string, params: unknown[] = []) => {
   throw new Error(`RPC ${method} failed on all providers: ${errors.join(' | ')}`);
 };
 
-const getSwapRate = async (from: string, to: string, apiKey?: string) => {
-  const fromId = resolveCoinId(from);
-  const toId = resolveCoinId(to);
+
+const normalizeSymbol = (token: string) => token.trim().toUpperCase();
+
+const ensureSupportedSymbol = (token: string) => {
+  const normalized = normalizeSymbol(token);
+  if (!SUPPORTED_SYMBOLS.has(normalized)) {
+    throw new Error(`Unsupported token symbol: ${token}`);
+  }
+
+  return normalized;
+};
+
+const getCoinGeckoSwapRate = async (from: string, to: string, apiKey?: string) => {
+  const fromSymbol = ensureSupportedSymbol(from);
+  const toSymbol = ensureSupportedSymbol(to);
+  const fromId = resolveCoinId(fromSymbol);
+  const toId = resolveCoinId(toSymbol);
 
   if (!fromId || !toId) {
     throw new Error('Unsupported token pair');
@@ -143,13 +166,86 @@ const getSwapRate = async (from: string, to: string, apiKey?: string) => {
   return fromPrice / toPrice;
 };
 
+const getUniswapSwapRate = async (
+  from: string,
+  to: string,
+  chain: 'unichain' | 'ethereum' | 'base',
+  amountIn: string | null,
+  apiKey?: string
+) => {
+  if (!apiKey) {
+    throw new Error('UNISWAP_API_KEY is not configured');
+  }
+
+  const chainId = CHAIN_ID_MAP[chain];
+  const query = new URLSearchParams({
+    tokenInSymbol: ensureSupportedSymbol(from),
+    tokenOutSymbol: ensureSupportedSymbol(to),
+    chainId: String(chainId),
+  });
+
+  if (amountIn && Number.isFinite(Number(amountIn)) && Number(amountIn) > 0) {
+    query.set('amountIn', amountIn);
+  }
+
+  const response = await fetch(
+    `https://interface.gateway.uniswap.org/v1/quote?${query.toString()}`,
+    {
+      headers: {
+        accept: 'application/json',
+        'x-api-key': apiKey,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Uniswap quote request failed (${response.status}): ${text}`);
+  }
+
+  const payload = (await response.json()) as {
+    quote?: { amountOut?: string; amountIn?: string };
+    amountOut?: string;
+    amountIn?: string;
+  };
+
+  const rawIn = payload.quote?.amountIn || payload.amountIn;
+  const rawOut = payload.quote?.amountOut || payload.amountOut;
+
+  if (!rawIn || !rawOut) {
+    throw new Error('Uniswap quote response did not include amountIn/amountOut');
+  }
+
+  const parsedIn = Number(rawIn);
+  const parsedOut = Number(rawOut);
+
+  if (!Number.isFinite(parsedIn) || !Number.isFinite(parsedOut) || parsedIn <= 0) {
+    throw new Error('Uniswap quote response contains invalid amount values');
+  }
+
+  return parsedOut / parsedIn;
+};
+
 const getQuotePayload = async (
   from: string,
   to: string,
+  chain: 'unichain' | 'ethereum' | 'base',
   amountIn: string | null,
-  apiKey?: string
+  coingeckoApiKey?: string,
+  uniswapApiKey?: string
 ): Promise<QuotePayload> => {
-  const rate = await getSwapRate(from, to, apiKey);
+  let rate = 0;
+  let source = 'coingecko-backend';
+  let routeStatus: QuotePayload['routeStatus'] = 'skeleton';
+
+  try {
+    rate = await getUniswapSwapRate(from, to, chain, amountIn, uniswapApiKey);
+    source = 'uniswap-api';
+    routeStatus = 'live';
+  } catch {
+    rate = await getCoinGeckoSwapRate(from, to, coingeckoApiKey);
+  }
+
   const parsedAmount = amountIn ? Number(amountIn) : NaN;
   const amountOut = Number.isFinite(parsedAmount)
     ? (parsedAmount * rate).toFixed(6)
@@ -158,11 +254,12 @@ const getQuotePayload = async (
   return {
     fromToken: from.toUpperCase(),
     toToken: to.toUpperCase(),
+    chain,
     rate,
     amountOut,
-    source: 'coingecko-backend',
+    source,
     timestamp: new Date().toISOString(),
-    routeStatus: 'skeleton',
+    routeStatus,
   };
 };
 
@@ -278,8 +375,9 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === '/api/uniswap/quote' || url.pathname === '/api/swap-rate') {
-      const from = url.searchParams.get('from') || '';
-      const to = url.searchParams.get('to') || '';
+      const from = normalizeSymbol(url.searchParams.get('from') || '');
+      const to = normalizeSymbol(url.searchParams.get('to') || '');
+      const chainParam = (url.searchParams.get('chain') || 'unichain').toLowerCase();
       const amountIn = url.searchParams.get('amountIn');
 
       if (!from || !to) {
@@ -289,8 +387,22 @@ export default {
         );
       }
 
+      if (!SUPPORTED_CHAINS.has(chainParam)) {
+        return json(
+          { error: 'Invalid chain. Supported: unichain, ethereum, base' },
+          { status: 400 }
+        );
+      }
+
       try {
-        const payload = await getQuotePayload(from, to, amountIn, env.COINGECKO_API_KEY);
+        const payload = await getQuotePayload(
+          from,
+          to,
+          chainParam as 'unichain' | 'ethereum' | 'base',
+          amountIn,
+          env.COINGECKO_API_KEY,
+          env.UNISWAP_API_KEY
+        );
         return json(payload);
       } catch (error) {
         return json(
