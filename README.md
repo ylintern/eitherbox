@@ -82,19 +82,9 @@ wrangler secret put GRAPH_API_KEY
 
 Notes:
 - Keep **Uniswap TWAP/oracles** as the primary onchain price reference.
-- Use Uniswap subgraph data through The Graph for live quotes (ethereum: v4 first then v3 fallback; unichain/base: configured v4 chain subgraph), with CoinGecko as a safe fallback if subgraph reads fail.
-- Never commit real keys to git; use environment variables and Worker secrets only.
-- If credentials have ever been shared in chat or logs, rotate them immediately and replace them in your local env / provider dashboard.
-
-### Uniswap integration modules
-
-A dedicated scaffold now lives under `src/uniswapintegration/`:
-- `types/` for integration request/response contracts
-- `services/` for backend quote API calls
-- `hooks/` for React quote-fetch lifecycle
-- `constants/` for supported token lists
-
-These modules are now wired into Swap/Pool/Yield tabs and can be extended with Uniswap ABI position + TWAP/oracle readers in the next step.
+- Use CoinGecko as a secondary fallback/sanity check.
+- Use QuickNode as the preferred Unichain RPC + WSS stream endpoint (`VITE_QUICKNODE_UNICHAIN_HTTP_URL`, `VITE_QUICKNODE_UNICHAIN_WSS_URL`).
+- Never commit real keys to git; use environment variables only.
 
 ## What technologies are used for this project?
 
