@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { fetchSwapQuote } from '@/uniswapintegration/services/quoteApi';
 import type {
+  SupportedSwapChain,
   SupportedTokenSymbol,
   SwapQuote,
 } from '@/uniswapintegration/types/swap';
@@ -8,6 +9,7 @@ import type {
 interface UseSwapQuoteParams {
   fromToken: SupportedTokenSymbol;
   toToken: SupportedTokenSymbol;
+  chain: SupportedSwapChain;
   amountIn?: string;
   fallbackRate: number;
 }
@@ -15,6 +17,7 @@ interface UseSwapQuoteParams {
 export const useSwapQuote = ({
   fromToken,
   toToken,
+  chain,
   amountIn,
   fallbackRate,
 }: UseSwapQuoteParams) => {
@@ -30,7 +33,7 @@ export const useSwapQuote = ({
       setError(null);
 
       try {
-        const nextQuote = await fetchSwapQuote({ fromToken, toToken, amountIn });
+        const nextQuote = await fetchSwapQuote({ fromToken, toToken, chain, amountIn });
 
         if (!cancelled) {
           setQuote(nextQuote);
@@ -52,7 +55,7 @@ export const useSwapQuote = ({
     return () => {
       cancelled = true;
     };
-  }, [amountIn, fromToken, toToken]);
+  }, [amountIn, chain, fromToken, toToken]);
 
   const displayedRate = useMemo(() => quote?.rate ?? fallbackRate, [fallbackRate, quote?.rate]);
 
