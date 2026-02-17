@@ -68,12 +68,12 @@ For deployed Workers, keep CoinGecko credentials server-side only:
 wrangler secret put COINGECKO_API_KEY
 wrangler secret put ALCHEMY_UNICHAIN_URL
 wrangler secret put GOLDSKY_RPC_URL
-wrangler secret put UNISWAP_API_KEY
+wrangler secret put GRAPH_API_KEY
 ```
 
 Notes:
 - Keep **Uniswap TWAP/oracles** as the primary onchain price reference.
-- Use Uniswap API server-side for live quotes when available, with CoinGecko as a safe fallback during rollout.
+- Use Uniswap subgraph data through The Graph for live Ethereum quotes, with CoinGecko as a safe fallback for rollout and non-Ethereum coverage.
 - Never commit real keys to git; use environment variables and Worker secrets only.
 
 ### Uniswap integration modules
