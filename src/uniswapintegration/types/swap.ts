@@ -17,6 +17,7 @@ export interface SwapQuoteRequest {
 export interface SwapQuote {
   fromToken: SupportedTokenSymbol;
   toToken: SupportedTokenSymbol;
+  chain: SupportedSwapChain;
   rate: number;
   amountOut?: string;
   source: string;

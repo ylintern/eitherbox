@@ -323,7 +323,7 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
               <span className="text-xs font-semibold text-secondary">Cross-Chain Bridge</span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Bridging from {CHAIN_LABELS[fromChain]} to {CHAIN_LABELS[toChain]}. Estimated time: 3-5 minutes
+              Bridge execution is not wired yet. You can swap on {CHAIN_LABELS[fromChain]} now; destination chain support is next.
             </p>
           </div>
         )}
@@ -348,6 +348,14 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
               </span>
             </div>
             <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Route Status</span>
+              <span className="text-foreground/80">{quote?.routeStatus ?? 'skeleton'}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Quote Chain</span>
+              <span className="text-foreground/80">{CHAIN_LABELS[quote?.chain ?? fromChain]}</span>
+            </div>
+            <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Slippage</span>
               <span className="text-foreground/80">{slippage}%</span>
             </div>
@@ -369,7 +377,7 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
           {!swapAmount 
             ? 'Enter Amount' 
             : isCrossChain
-            ? 'Open Bridge & Swap on Uniswap'
+            ? 'Open Source-Chain Swap on Uniswap'
             : 'Open Swap on Uniswap'}
         </button>
       </div>

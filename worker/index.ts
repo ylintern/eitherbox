@@ -114,9 +114,23 @@ const rpcCall = async <T>(env: Env, method: string, params: unknown[] = []) => {
   throw new Error(`RPC ${method} failed on all providers: ${errors.join(' | ')}`);
 };
 
+
+const normalizeSymbol = (token: string) => token.trim().toUpperCase();
+
+const ensureSupportedSymbol = (token: string) => {
+  const normalized = normalizeSymbol(token);
+  if (!SUPPORTED_SYMBOLS.has(normalized)) {
+    throw new Error(`Unsupported token symbol: ${token}`);
+  }
+
+  return normalized;
+};
+
 const getCoinGeckoSwapRate = async (from: string, to: string, apiKey?: string) => {
-  const fromId = resolveCoinId(from);
-  const toId = resolveCoinId(to);
+  const fromSymbol = ensureSupportedSymbol(from);
+  const toSymbol = ensureSupportedSymbol(to);
+  const fromId = resolveCoinId(fromSymbol);
+  const toId = resolveCoinId(toSymbol);
 
   if (!fromId || !toId) {
     throw new Error('Unsupported token pair');
@@ -165,8 +179,8 @@ const getUniswapSwapRate = async (
 
   const chainId = CHAIN_ID_MAP[chain];
   const query = new URLSearchParams({
-    tokenInSymbol: from.toUpperCase(),
-    tokenOutSymbol: to.toUpperCase(),
+    tokenInSymbol: ensureSupportedSymbol(from),
+    tokenOutSymbol: ensureSupportedSymbol(to),
     chainId: String(chainId),
   });
 
@@ -361,8 +375,8 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === '/api/uniswap/quote' || url.pathname === '/api/swap-rate') {
-      const from = url.searchParams.get('from') || '';
-      const to = url.searchParams.get('to') || '';
+      const from = normalizeSymbol(url.searchParams.get('from') || '');
+      const to = normalizeSymbol(url.searchParams.get('to') || '');
       const chainParam = (url.searchParams.get('chain') || 'unichain').toLowerCase();
       const amountIn = url.searchParams.get('amountIn');
 
