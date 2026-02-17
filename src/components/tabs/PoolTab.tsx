@@ -40,12 +40,20 @@ export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) =>
                 className="bubble-sm p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3"
               >
                 <div>
-                  <p className="font-semibold">{shortenPoolId(pool.poolId)}</p>
+                  <p className="font-semibold">
+                    {pool.token0Symbol && pool.token1Symbol
+                      ? `${pool.token0Symbol}/${pool.token1Symbol}`
+                      : shortenPoolId(pool.poolId)}
+                  </p>
                   <p className="text-xs text-muted-foreground break-all">{pool.poolId}</p>
                 </div>
                 <div className="text-sm text-muted-foreground text-left md:text-right">
                   <p>Chain: {pool.chain}</p>
                   <p>Snapshot Block: {pool.blockNumber.toLocaleString()}</p>
+                  {pool.feeTier && <p>Fee Tier: {pool.feeTier}</p>}
+                  {pool.tvlUsd && <p>TVL: ${Number(pool.tvlUsd).toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>}
+                  {pool.volumeUsd && <p>Volume: ${Number(pool.volumeUsd).toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>}
+                  {pool.source && <p>Source: {pool.source}</p>}
                   <a
                     href={pool.explorerUrl}
                     target="_blank"
