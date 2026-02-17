@@ -1,10 +1,11 @@
 import { env } from '@/lib/env';
 import type { SwapQuote, SwapQuoteRequest } from '@/uniswapintegration/types/swap';
 
-const buildQuoteUrl = ({ fromToken, toToken, amountIn }: SwapQuoteRequest) => {
+const buildQuoteUrl = ({ fromToken, toToken, chain, amountIn }: SwapQuoteRequest) => {
   const params = new URLSearchParams({
     from: fromToken,
     to: toToken,
+    chain,
   });
 
   if (amountIn) {
