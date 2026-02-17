@@ -3,6 +3,7 @@ interface Env {
   COINGECKO_API_KEY?: string;
   ALCHEMY_UNICHAIN_URL?: string;
   GOLDSKY_RPC_URL?: string;
+  GRAPH_API_KEY?: string;
 }
 
 interface QuotePayload {
@@ -12,7 +13,8 @@ interface QuotePayload {
   amountOut?: string;
   source: string;
   timestamp: string;
-  routeStatus: 'skeleton';
+  chain: 'unichain' | 'ethereum' | 'base';
+  routeStatus: 'skeleton' | 'live';
 }
 
 const TRACKED_POOL_IDS = [
@@ -23,6 +25,7 @@ const TRACKED_POOL_IDS = [
 ] as const;
 
 const SUPPORTED_SYMBOLS = new Set(['UNI', 'WBTC', 'WETH', 'USDC', 'USDT']);
+const SUPPORTED_CHAINS = new Set(['unichain', 'ethereum', 'base']);
 
 const json = (body: unknown, init?: ResponseInit) =>
   new Response(JSON.stringify(body), {
@@ -41,6 +44,17 @@ const TOKEN_TO_COINGECKO_ID: Record<string, string> = {
   UNI: 'uniswap',
   USDC: 'usd-coin',
   USDT: 'tether',
+};
+
+const UNISWAP_V3_MAINNET_SUBGRAPH_ID =
+  '5zvR82QoaXYFyDEKLZ9t6v9adgnptxYpKpSbxtgVENFV';
+
+const ETHEREUM_TOKEN_ADDRESS_BY_SYMBOL: Record<string, string> = {
+  UNI: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',
+  WBTC: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+  WETH: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+  USDC: '0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+  USDT: '0xdac17f958d2ee523a2206206994597c13d831ec7',
 };
 
 const PUBLIC_UNICHAIN_RPC_FALLBACKS = [
@@ -105,9 +119,23 @@ const rpcCall = async <T>(env: Env, method: string, params: unknown[] = []) => {
   throw new Error(`RPC ${method} failed on all providers: ${errors.join(' | ')}`);
 };
 
-const getSwapRate = async (from: string, to: string, apiKey?: string) => {
-  const fromId = resolveCoinId(from);
-  const toId = resolveCoinId(to);
+
+const normalizeSymbol = (token: string) => token.trim().toUpperCase();
+
+const ensureSupportedSymbol = (token: string) => {
+  const normalized = normalizeSymbol(token);
+  if (!SUPPORTED_SYMBOLS.has(normalized)) {
+    throw new Error(`Unsupported token symbol: ${token}`);
+  }
+
+  return normalized;
+};
+
+const getCoinGeckoSwapRate = async (from: string, to: string, apiKey?: string) => {
+  const fromSymbol = ensureSupportedSymbol(from);
+  const toSymbol = ensureSupportedSymbol(to);
+  const fromId = resolveCoinId(fromSymbol);
+  const toId = resolveCoinId(toSymbol);
 
   if (!fromId || !toId) {
     throw new Error('Unsupported token pair');
@@ -143,13 +171,105 @@ const getSwapRate = async (from: string, to: string, apiKey?: string) => {
   return fromPrice / toPrice;
 };
 
+const getUniswapGraphSwapRate = async (
+  from: string,
+  to: string,
+  chain: 'unichain' | 'ethereum' | 'base',
+  graphApiKey?: string
+) => {
+  if (chain !== 'ethereum') {
+    throw new Error('Uniswap subgraph quote source is currently configured for ethereum only');
+  }
+
+  if (!graphApiKey) {
+    throw new Error('GRAPH_API_KEY is not configured');
+  }
+
+  const fromAddress = ETHEREUM_TOKEN_ADDRESS_BY_SYMBOL[ensureSupportedSymbol(from)];
+  const toAddress = ETHEREUM_TOKEN_ADDRESS_BY_SYMBOL[ensureSupportedSymbol(to)];
+
+  if (!fromAddress || !toAddress) {
+    throw new Error('Unsupported token for Uniswap v3 mainnet subgraph quote source');
+  }
+
+  const endpoint = `https://gateway.thegraph.com/api/${graphApiKey}/subgraphs/id/${UNISWAP_V3_MAINNET_SUBGRAPH_ID}`;
+  const query = `
+    query QuotePrice($from: String!, $to: String!) {
+      fromToken: token(id: $from) {
+        derivedETH
+      }
+      toToken: token(id: $to) {
+        derivedETH
+      }
+      bundle(id: "1") {
+        ethPriceUSD
+      }
+    }
+  `;
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      accept: 'application/json',
+    },
+    body: JSON.stringify({
+      query,
+      variables: {
+        from: fromAddress.toLowerCase(),
+        to: toAddress.toLowerCase(),
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Uniswap Graph request failed (${response.status}): ${text}`);
+  }
+
+  const payload = (await response.json()) as {
+    data?: {
+      fromToken?: { derivedETH?: string };
+      toToken?: { derivedETH?: string };
+      bundle?: { ethPriceUSD?: string };
+    };
+    errors?: { message?: string }[];
+  };
+
+  if (payload.errors?.length) {
+    throw new Error(payload.errors[0]?.message || 'Uniswap Graph returned an unknown error');
+  }
+
+  const fromDerivedEth = Number(payload.data?.fromToken?.derivedETH);
+  const toDerivedEth = Number(payload.data?.toToken?.derivedETH);
+
+  if (!Number.isFinite(fromDerivedEth) || !Number.isFinite(toDerivedEth) || toDerivedEth <= 0) {
+    throw new Error('Uniswap Graph returned invalid derivedETH values');
+  }
+
+  return fromDerivedEth / toDerivedEth;
+};
+
 const getQuotePayload = async (
   from: string,
   to: string,
+  chain: 'unichain' | 'ethereum' | 'base',
   amountIn: string | null,
-  apiKey?: string
+  coingeckoApiKey?: string,
+  graphApiKey?: string
 ): Promise<QuotePayload> => {
-  const rate = await getSwapRate(from, to, apiKey);
+  let rate = 0;
+  let source = 'coingecko-backend';
+  let routeStatus: QuotePayload['routeStatus'] = 'skeleton';
+
+  try {
+    rate = await getUniswapGraphSwapRate(from, to, chain, graphApiKey);
+    source = 'uniswap-v3-subgraph';
+    routeStatus = 'live';
+  } catch {
+    rate = await getCoinGeckoSwapRate(from, to, coingeckoApiKey);
+  }
+
   const parsedAmount = amountIn ? Number(amountIn) : NaN;
   const amountOut = Number.isFinite(parsedAmount)
     ? (parsedAmount * rate).toFixed(6)
@@ -158,11 +278,12 @@ const getQuotePayload = async (
   return {
     fromToken: from.toUpperCase(),
     toToken: to.toUpperCase(),
+    chain,
     rate,
     amountOut,
-    source: 'coingecko-backend',
+    source,
     timestamp: new Date().toISOString(),
-    routeStatus: 'skeleton',
+    routeStatus,
   };
 };
 
@@ -278,8 +399,9 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === '/api/uniswap/quote' || url.pathname === '/api/swap-rate') {
-      const from = url.searchParams.get('from') || '';
-      const to = url.searchParams.get('to') || '';
+      const from = normalizeSymbol(url.searchParams.get('from') || '');
+      const to = normalizeSymbol(url.searchParams.get('to') || '');
+      const chainParam = (url.searchParams.get('chain') || 'unichain').toLowerCase();
       const amountIn = url.searchParams.get('amountIn');
 
       if (!from || !to) {
@@ -289,8 +411,22 @@ export default {
         );
       }
 
+      if (!SUPPORTED_CHAINS.has(chainParam)) {
+        return json(
+          { error: 'Invalid chain. Supported: unichain, ethereum, base' },
+          { status: 400 }
+        );
+      }
+
       try {
-        const payload = await getQuotePayload(from, to, amountIn, env.COINGECKO_API_KEY);
+        const payload = await getQuotePayload(
+          from,
+          to,
+          chainParam as 'unichain' | 'ethereum' | 'base',
+          amountIn,
+          env.COINGECKO_API_KEY,
+          env.GRAPH_API_KEY
+        );
         return json(payload);
       } catch (error) {
         return json(
