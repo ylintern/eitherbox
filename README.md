@@ -78,6 +78,7 @@ wrangler secret put COINGECKO_API_KEY
 wrangler secret put ALCHEMY_UNICHAIN_URL
 wrangler secret put GOLDSKY_RPC_URL
 wrangler secret put GRAPH_API_KEY
+wrangler secret put UNISWAP_API_KEY
 ```
 
 Notes:

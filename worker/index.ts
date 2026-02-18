@@ -4,6 +4,7 @@ interface Env {
   ALCHEMY_UNICHAIN_URL?: string;
   GOLDSKY_RPC_URL?: string;
   GRAPH_API_KEY?: string;
+  UNISWAP_API_KEY?: string;
 }
 
 interface QuotePayload {
@@ -15,6 +16,8 @@ interface QuotePayload {
   timestamp: string;
   chain: 'unichain' | 'ethereum' | 'base';
   routeStatus: 'skeleton' | 'live';
+  fallbackReason?: string;
+  route?: string[];
 }
 
 const TRACKED_POOL_IDS = [
@@ -26,6 +29,11 @@ const TRACKED_POOL_IDS = [
 
 const SUPPORTED_SYMBOLS = new Set(['UNI', 'WBTC', 'WETH', 'USDC', 'USDT']);
 const SUPPORTED_CHAINS = new Set(['unichain', 'ethereum', 'base']);
+const CHAIN_ID_BY_KEY: Record<'unichain' | 'ethereum' | 'base', number> = {
+  unichain: 130,
+  ethereum: 1,
+  base: 8453,
+};
 
 const json = (body: unknown, init?: ResponseInit) =>
   new Response(JSON.stringify(body), {
@@ -191,6 +199,63 @@ const getCoinGeckoSwapRate = async (from: string, to: string, apiKey?: string) =
   return fromPrice / toPrice;
 };
 
+
+const getUniswapTradingApiQuote = async (
+  from: string,
+  to: string,
+  chain: 'unichain' | 'ethereum' | 'base',
+  amountIn: string | null,
+  apiKey?: string
+): Promise<{ rate: number; route?: string[] }> => {
+  if (!apiKey) {
+    throw new Error('UNISWAP_API_KEY is not configured');
+  }
+
+  const query = new URLSearchParams({
+    tokenInSymbol: ensureSupportedSymbol(from),
+    tokenOutSymbol: ensureSupportedSymbol(to),
+    chainId: String(CHAIN_ID_BY_KEY[chain]),
+  });
+
+  if (amountIn && Number.isFinite(Number(amountIn)) && Number(amountIn) > 0) {
+    query.set('amountIn', amountIn);
+  }
+
+  const response = await fetch(`https://interface.gateway.uniswap.org/v1/quote?${query.toString()}`, {
+    headers: {
+      accept: 'application/json',
+      'x-api-key': apiKey,
+    },
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`uniswap-trading-api request failed (${response.status}): ${text}`);
+  }
+
+  const payload = (await response.json()) as {
+    quote?: { amountOut?: string; amountIn?: string };
+    amountOut?: string;
+    amountIn?: string;
+    route?: { tokenPath?: string[] };
+    routeString?: string[];
+  };
+
+  const rawIn = payload.quote?.amountIn || payload.amountIn;
+  const rawOut = payload.quote?.amountOut || payload.amountOut;
+  const parsedIn = Number(rawIn);
+  const parsedOut = Number(rawOut);
+
+  if (!Number.isFinite(parsedIn) || !Number.isFinite(parsedOut) || parsedIn <= 0) {
+    throw new Error('uniswap-trading-api returned invalid amountIn/amountOut');
+  }
+
+  return {
+    rate: parsedOut / parsedIn,
+    route: payload.route?.tokenPath || payload.routeString,
+  };
+};
+
 const fetchUniswapGraphRateBySubgraph = async (
   from: string,
   to: string,
@@ -208,7 +273,7 @@ const fetchUniswapGraphRateBySubgraph = async (
 
   const endpoint = `https://gateway.thegraph.com/api/${graphApiKey}/subgraphs/id/${subgraphId}`;
   const query = `
-    query QuotePrice($from: String!, $to: String!) {
+    query QuotePrice($from: ID!, $to: ID!) {
       fromToken: token(id: $from) {
         derivedETH
       }
@@ -307,19 +372,34 @@ const getQuotePayload = async (
   chain: 'unichain' | 'ethereum' | 'base',
   amountIn: string | null,
   coingeckoApiKey?: string,
-  graphApiKey?: string
+  graphApiKey?: string,
+  uniswapApiKey?: string
 ): Promise<QuotePayload> => {
   let rate = 0;
   let source = 'coingecko-backend';
   let routeStatus: QuotePayload['routeStatus'] = 'skeleton';
+  let fallbackReason: string | undefined;
+  let route: string[] | undefined;
 
   try {
-    const graphQuote = await getUniswapGraphSwapRate(from, to, chain, graphApiKey);
-    rate = graphQuote.rate;
-    source = graphQuote.source;
+    const tradingQuote = await getUniswapTradingApiQuote(from, to, chain, amountIn, uniswapApiKey);
+    rate = tradingQuote.rate;
+    source = 'uniswap-trading-api';
     routeStatus = 'live';
-  } catch {
-    rate = await getCoinGeckoSwapRate(from, to, coingeckoApiKey);
+    route = tradingQuote.route;
+  } catch (tradingError) {
+    try {
+      const graphQuote = await getUniswapGraphSwapRate(from, to, chain, graphApiKey);
+      rate = graphQuote.rate;
+      source = graphQuote.source;
+      routeStatus = 'live';
+      fallbackReason = tradingError instanceof Error ? tradingError.message : 'Trading API quote failed';
+    } catch (graphError) {
+      const t = tradingError instanceof Error ? tradingError.message : 'Trading API quote failed';
+      const g = graphError instanceof Error ? graphError.message : 'Graph quote failed';
+      fallbackReason = `${t} | ${g}`;
+      rate = await getCoinGeckoSwapRate(from, to, coingeckoApiKey);
+    }
   }
 
   const parsedAmount = amountIn ? Number(amountIn) : NaN;
@@ -336,7 +416,66 @@ const getQuotePayload = async (
     source,
     timestamp: new Date().toISOString(),
     routeStatus,
+    fallbackReason,
+    route,
   };
+};
+
+
+const getTrackedPoolMetadata = async (env: Env) => {
+  if (!env.GRAPH_API_KEY) return new Map<string, { token0Symbol?: string; token1Symbol?: string; feeTier?: string; tvlUsd?: string; volumeUsd?: string }>();
+
+  const endpoint = `https://gateway.thegraph.com/api/${env.GRAPH_API_KEY}/subgraphs/id/${UNISWAP_V4_CHAIN_SUBGRAPH_ID}`;
+  const query = `
+    query TrackedPools($ids: [ID!]!) {
+      pools(where: { id_in: $ids }) {
+        id
+        feeTier
+        totalValueLockedUSD
+        volumeUSD
+        token0 { symbol }
+        token1 { symbol }
+      }
+    }
+  `;
+
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', accept: 'application/json' },
+      body: JSON.stringify({ query, variables: { ids: [...TRACKED_POOL_IDS] } }),
+    });
+
+    if (!response.ok) return new Map();
+
+    const payload = (await response.json()) as {
+      data?: {
+        pools?: Array<{
+          id: string;
+          feeTier?: string;
+          totalValueLockedUSD?: string;
+          volumeUSD?: string;
+          token0?: { symbol?: string };
+          token1?: { symbol?: string };
+        }>;
+      };
+    };
+
+    const map = new Map<string, { token0Symbol?: string; token1Symbol?: string; feeTier?: string; tvlUsd?: string; volumeUsd?: string }>();
+    for (const pool of payload.data?.pools || []) {
+      map.set(pool.id.toLowerCase(), {
+        token0Symbol: pool.token0?.symbol,
+        token1Symbol: pool.token1?.symbol,
+        feeTier: pool.feeTier,
+        tvlUsd: pool.totalValueLockedUSD,
+        volumeUsd: pool.volumeUSD,
+      });
+    }
+
+    return map;
+  } catch {
+    return new Map();
+  }
 };
 
 const getTrackedPoolsPayload = async (env: Env) => {
@@ -352,16 +491,27 @@ const getTrackedPoolsPayload = async (env: Env) => {
     source = 'static-pools';
   }
 
+  const metadata = await getTrackedPoolMetadata(env);
+
   return {
     chain: 'unichain',
     blockNumber,
     source,
-    pools: TRACKED_POOL_IDS.map((poolId) => ({
-      poolId,
-      chain: 'unichain' as const,
-      blockNumber,
-      explorerUrl: `https://app.uniswap.org/explore/pools/unichain/${poolId}`,
-    })),
+    pools: TRACKED_POOL_IDS.map((poolId) => {
+      const poolMeta = metadata.get(poolId.toLowerCase());
+      return {
+        poolId,
+        chain: 'unichain' as const,
+        blockNumber,
+        explorerUrl: `https://app.uniswap.org/explore/pools/unichain/${poolId}`,
+        token0Symbol: poolMeta?.token0Symbol,
+        token1Symbol: poolMeta?.token1Symbol,
+        feeTier: poolMeta?.feeTier,
+        tvlUsd: poolMeta?.tvlUsd,
+        volumeUsd: poolMeta?.volumeUsd,
+        source: poolMeta ? 'graph+rpc' : source,
+      };
+    }),
   };
 };
 
@@ -477,7 +627,8 @@ export default {
           chainParam as 'unichain' | 'ethereum' | 'base',
           amountIn,
           env.COINGECKO_API_KEY,
-          env.GRAPH_API_KEY
+          env.GRAPH_API_KEY,
+          env.UNISWAP_API_KEY
         );
         return json(payload);
       } catch (error) {

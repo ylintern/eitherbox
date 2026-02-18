@@ -5,6 +5,12 @@ export interface TrackedPool {
   chain: 'unichain';
   blockNumber: number;
   explorerUrl: string;
+  token0Symbol?: string;
+  token1Symbol?: string;
+  feeTier?: string;
+  tvlUsd?: string;
+  volumeUsd?: string;
+  source?: string;
 }
 
 export interface WalletTokenBalance {
