@@ -359,6 +359,11 @@ export const SwapTab = ({ walletConnected }: SwapTabProps) => {
               <span className="text-muted-foreground">Slippage</span>
               <span className="text-foreground/80">{slippage}%</span>
             </div>
+            {quote?.fallbackReason && (
+              <p className="text-xs text-muted-foreground break-all">
+                Graph fallback reason: {quote.fallbackReason}
+              </p>
+            )}
           </div>
         )}
 
