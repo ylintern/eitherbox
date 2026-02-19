@@ -83,9 +83,8 @@ wrangler secret put UNISWAP_API_KEY
 
 Notes:
 - Keep **Uniswap TWAP/oracles** as the primary onchain price reference.
-- Use Uniswap Trading API + The Graph for live quotes (trading API first, then chain-aware subgraph lookup), with CoinGecko as a safe fallback if upstream quote providers fail.
+- Use Uniswap subgraph data through The Graph for live quotes (ethereum: v4 first then v3 fallback; unichain/base: configured v4 chain subgraph), with CoinGecko as a safe fallback if subgraph reads fail.
 - Never commit real keys to git; use environment variables and Worker secrets only.
-- If credentials have ever been shared in chat or logs, rotate them immediately and replace them in your local env / provider dashboard.
 
 ### Uniswap integration modules
 
