@@ -17,7 +17,6 @@ interface QuotePayload {
   chain: 'unichain' | 'ethereum' | 'base';
   routeStatus: 'skeleton' | 'live';
   fallbackReason?: string;
-  route?: string[];
 }
 
 const TRACKED_POOL_IDS = [
@@ -379,27 +378,15 @@ const getQuotePayload = async (
   let source = 'coingecko-backend';
   let routeStatus: QuotePayload['routeStatus'] = 'skeleton';
   let fallbackReason: string | undefined;
-  let route: string[] | undefined;
 
   try {
     const tradingQuote = await getUniswapTradingApiQuote(from, to, chain, amountIn, uniswapApiKey);
     rate = tradingQuote.rate;
     source = 'uniswap-trading-api';
     routeStatus = 'live';
-    route = tradingQuote.route;
-  } catch (tradingError) {
-    try {
-      const graphQuote = await getUniswapGraphSwapRate(from, to, chain, graphApiKey);
-      rate = graphQuote.rate;
-      source = graphQuote.source;
-      routeStatus = 'live';
-      fallbackReason = tradingError instanceof Error ? tradingError.message : 'Trading API quote failed';
-    } catch (graphError) {
-      const t = tradingError instanceof Error ? tradingError.message : 'Trading API quote failed';
-      const g = graphError instanceof Error ? graphError.message : 'Graph quote failed';
-      fallbackReason = `${t} | ${g}`;
-      rate = await getCoinGeckoSwapRate(from, to, coingeckoApiKey);
-    }
+  } catch (error) {
+    fallbackReason = error instanceof Error ? error.message : 'Graph quote failed';
+    rate = await getCoinGeckoSwapRate(from, to, coingeckoApiKey);
   }
 
   const parsedAmount = amountIn ? Number(amountIn) : NaN;
@@ -417,7 +404,6 @@ const getQuotePayload = async (
     timestamp: new Date().toISOString(),
     routeStatus,
     fallbackReason,
-    route,
   };
 };
 

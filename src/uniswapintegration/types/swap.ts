@@ -24,5 +24,4 @@ export interface SwapQuote {
   timestamp: string;
   routeStatus: 'skeleton' | 'live';
   fallbackReason?: string;
-  route?: string[];
 }
