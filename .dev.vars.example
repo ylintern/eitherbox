@@ -1,8 +1,0 @@
-# Cloudflare Worker local secrets (do not commit real values)
-COINGECKO_API_KEY=
-GRAPH_API_KEY=
-ALCHEMY_UNICHAIN_URL=
-GOLDSKY_RPC_URL=
-
-# Optional for local debugging
-# LOG_LEVEL=debug
