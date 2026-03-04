@@ -1,3 +1,14 @@
+import { ExternalLink } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { useTrackedPools } from '@/uniswapintegration';
 
 interface PoolTabProps {
@@ -7,82 +18,98 @@ interface PoolTabProps {
 
 const shortenPoolId = (poolId: string) => `${poolId.slice(0, 10)}...${poolId.slice(-8)}`;
 
+const formatUsd = (amount?: string) => {
+  if (!amount) return '—';
+  const parsed = Number(amount);
+  if (!Number.isFinite(parsed)) return '—';
+  return `$${parsed.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+};
+
 export const PoolTab = ({ walletConnected, onNavigateToYield }: PoolTabProps) => {
   const { pools, isLoading, error } = useTrackedPools();
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
-      <div className="bubble p-8">
-        <h2 className="text-2xl font-bold mb-2">Unichain Onchain Pools</h2>
-        <p className="text-sm text-muted-foreground mb-6">
-          Live pool list is read from onchain-backed backend sync (RPC block snapshots).
-        </p>
+      <Card>
+        <CardHeader>
+          <CardTitle>Unichain Onchain Pools</CardTitle>
+          <CardDescription>
+            Live pool list is read from backend snapshots and normalized for frontend cards.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {!walletConnected && (
+            <p className="text-sm text-muted-foreground">
+              Connect your wallet to see your positions in the Yield tab.
+            </p>
+          )}
 
-        {!walletConnected && (
-          <p className="text-sm text-muted-foreground mb-4">
-            Connect your wallet to see your positions in the Yield tab.
-          </p>
-        )}
+          {isLoading && <p className="text-sm text-muted-foreground">Loading onchain pools...</p>}
 
-        {isLoading && <p className="text-sm text-muted-foreground">Loading onchain pools...</p>}
+          {error && (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+              Failed to load onchain pools: {error}
+            </div>
+          )}
 
-        {error && (
-          <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-            Failed to load onchain pools: {error}
-          </div>
-        )}
+          {!isLoading && !error && pools.length === 0 && (
+            <p className="text-sm text-muted-foreground">No tracked pools returned by the backend.</p>
+          )}
 
-        {!isLoading && !error && (
-          <div className="space-y-3">
-            {pools.map((pool) => (
-              <div
-                key={pool.poolId}
-                className="bubble-sm p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3"
-              >
-                <div>
-                  <p className="font-semibold">
-                    {pool.token0Symbol && pool.token1Symbol
-                      ? `${pool.token0Symbol}/${pool.token1Symbol}`
-                      : shortenPoolId(pool.poolId)}
-                  </p>
-                  <p className="text-xs text-muted-foreground break-all">{pool.poolId}</p>
-                </div>
-                <div className="text-sm text-muted-foreground text-left md:text-right">
-                  <p>Chain: {pool.chain}</p>
-                  <p>Snapshot Block: {pool.blockNumber.toLocaleString()}</p>
-                  {pool.feeTier && <p>Fee Tier: {pool.feeTier}</p>}
-                  {pool.tvlUsd && <p>TVL: ${Number(pool.tvlUsd).toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>}
-                  {pool.volumeUsd && <p>Volume: ${Number(pool.volumeUsd).toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>}
-                  {pool.source && <p>Source: {pool.source}</p>}
-                  <a
-                    href={pool.explorerUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-primary hover:underline"
-                  >
-                    Open on Uniswap
-                  </a>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+          {!isLoading && !error && pools.length > 0 && (
+            <div className="grid gap-3">
+              {pools.map((pool) => {
+                const poolName =
+                  pool.token0Symbol && pool.token1Symbol
+                    ? `${pool.token0Symbol}/${pool.token1Symbol}`
+                    : shortenPoolId(pool.poolId);
 
-      <div className="bubble p-8 flex items-center justify-between gap-4">
-        <div>
-          <h3 className="text-lg font-semibold">Your LP Positions</h3>
-          <p className="text-sm text-muted-foreground">
+                return (
+                  <Card key={pool.poolId} className="border-border/70">
+                    <CardHeader className="pb-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <CardTitle className="text-lg">{poolName}</CardTitle>
+                        <div className="flex items-center gap-2">
+                          {pool.feeTier && <Badge variant="secondary">Fee {pool.feeTier}</Badge>}
+                          <Badge variant="outline">Block {pool.blockNumber.toLocaleString()}</Badge>
+                        </div>
+                      </div>
+                      <CardDescription className="break-all">{pool.poolId}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-0 pb-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                        <p className="text-muted-foreground">Chain: {pool.chain}</p>
+                        <p className="text-muted-foreground">TVL: {formatUsd(pool.tvlUsd)}</p>
+                        <p className="text-muted-foreground">Volume: {formatUsd(pool.volumeUsd)}</p>
+                        <p className="text-muted-foreground">Source: {pool.source || 'unknown'}</p>
+                      </div>
+                    </CardContent>
+                    <CardFooter className="pt-0">
+                      <Button asChild variant="outline" size="sm">
+                        <a href={pool.explorerUrl} target="_blank" rel="noreferrer">
+                          Open on Uniswap <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Your LP Positions</CardTitle>
+          <CardDescription>
             Use Yield tab for wallet positions and fee claims sourced from backend wallet overview.
-          </p>
-        </div>
-        <button
-          onClick={onNavigateToYield}
-          className="px-5 py-2.5 rounded-full bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all"
-        >
-          Go to Yield
-        </button>
-      </div>
+          </CardDescription>
+        </CardHeader>
+        <CardFooter className="justify-end">
+          <Button onClick={onNavigateToYield}>Go to Yield</Button>
+        </CardFooter>
+      </Card>
     </div>
   );
 };
